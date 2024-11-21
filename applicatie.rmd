@@ -137,22 +137,20 @@ for ( col in 44:ncol(merged)){
 }
 ```
 
-## Visualing
+## Visualization
 ### Barplot
 
 **20-11-2024**
 
 A simple, yet efficient way of visualising expression values and cell lines can be done using a barplot. For this I am using the ggplot library, with the geom_bar function. For the data I give the merged dataframe, with the gene (in this case, TSPAN6) as x-axis and the tumor cell line name as y-axis. This results in expression levels being shown horizontally (x-axis) and corresponding cell line names vertically (y-axis). I ordered the expression levels from high to low, seeing as in cancer therapy one might be looking for highly overexpressed genes, in order to develop a treatment that could interfere on the expression of that gene. I sorted them using the reorder()-function, by first giving the `StrippedCellLineName` column, and then telling it to sort it based off of the expression values in the gene (TSPAN6). 
 
-However one might also be interested in genes with a very low expression, because this gene could also possibly be involved in the development of cancer in that cell line. The gene can for example be a tumor suppressor gene, which can also possibly be treated if a medication would be developed that could increase the expression of that gene again. I am planning on allowing the user to sort from either high-low or low-high for gene expression levels in the application. Sorting from low-high can be done by adding a '-' in the following line: `y=reorder(StrippedCellLineName,-TSPAN6)`. 
+However one might also be interested in genes with a very low expression, because this gene could also possibly be involved in the development of cancer in that cell line. The gene can for example be a tumor suppressor gene, which can also possibly be treated if a medication would be developed that could increase the expression of that gene again. I am planning on allowing the user to sort from either high-low or low-high for gene expression levels in the application. Sorting from low-high can be done by adding a '-' in the following line: `y=reorder(StrippedCellLineName,-TSPAN6)`. The code below is just a first visualisation, later I will add onto the code and write it as a function so it can easily be used with different parameters, which will be needed for the application.
 
 ```{r}
 # generates horizontal barplot of chosen gene and cell lines that express this gene 
 gene_expr_cell_line <- ggplot(data=head(merged), aes(x=TSPAN6,
                                                      y=reorder
-                                                     (StrippedCellLineName,TSPAN6)))
-+ geom_bar(stat="identity", fill = 'blue') + ylab("Tumor Cell Line") +
-  theme_minimal()
+                                                     (StrippedCellLineName,TSPAN6)))+ geom_bar(stat="identity", fill = 'blue') + ylab("Tumor Cell Line") + xlab("Expression level (log2 TPM)") + labs(subtitle = "TSPAN6") + theme_minimal()
 
 gene_expr_cell_line
 
@@ -161,10 +159,38 @@ gene_expr_cell_line
 As of now I am only using the head of the data, as there are a lot of tumor cell lines (1517), by using various filtering methods I would like to lower this amount, for example let the user filter between specific expression levels, or only include cell lines extracted from certain types of tumors, so that the application won't have to display such an extensive barplot.
 
 
+**21-11-2024**
+To further filter on specific traits like age category, sex or race, simple statements like this can be used:
+```{r}
+female_merged <- merged %>% filter(Sex == "Female")
+```
+
+
+```{r}
+# generates horizontal barplot of chosen gene and cell lines that express this gene 
+cell_line_barplot <- function(dataset, gene) {
+  return(ggplot(data=dataset, aes(x=gene, y=reorder
+                                        (StrippedCellLineName,gene)))+
+           geom_bar(stat="identity", fill = 'blue') + ylab("Tumor Cell Line") +
+           theme_minimal())
+}
+
+
+cell_line_barplot(dataset = head(merged), gene = "TSPAN6")
+
+
+```
+
+
+
+## Other ways for visualising expression data
+
+
 # Developing the application
 
 **20-11-2024**
 
+I have started trying to develop the application using the documentation for Shiny and using the online version of the book ('Mastering Shiny')[https://mastering-shiny.org/index.html] by Hadley Wickham. This is by no means the final version of the application, as I will first develop a wireframe for the final look, however I really wanted to already started practicing with Shiny.
 ```{r}
 ui <- fluidPage(
   
