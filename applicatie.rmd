@@ -17,6 +17,7 @@ bibliography: DepMap.bib
 library(shiny)
 library(ggplot2)
 library(tidyr)
+library(plotly)
 ```
 
 
@@ -160,27 +161,26 @@ As of now I am only using the head of the data, as there are a lot of tumor cell
 
 
 **21-11-2024**
-To further filter on specific traits like age category, sex or race, simple statements like this can be used:
-```{r}
-female_merged <- merged %>% filter(Sex == "Female")
-```
-
 
 ```{r}
 # generates horizontal barplot of chosen gene and cell lines that express this gene 
-cell_line_barplot <- function(dataset, gene) {
-  return(ggplot(data=dataset, aes(x=gene, y=reorder
-                                        (StrippedCellLineName,gene)))+
-           geom_bar(stat="identity", fill = 'blue') + ylab("Tumor Cell Line") +
+cell_line_barplot <- function(dataset, aes.x, aes.y) {
+  return(ggplot(data=dataset, aes(x= aes.x, y= aes.y)) +
+           geom_bar(stat="identity", fill = 'blue') + ylab("Tumor Cell Line") + xlab("Expression level (log2 TPM)") +
            theme_minimal())
 }
-
-
-cell_line_barplot(dataset = head(merged), gene = "TSPAN6")
-
-
 ```
 
+To further filter on specific traits like age category, sex or race, simple statements like this can be used:
+```{r}
+filtered <- subset(merged, Sex == "Female" & PatientRace == "caucasian" & TSPAN6 != 0 & AgeCategory == "Pediatric")
+```
+
+The new cell_line_barplot function can now be called as shown in the code below:
+```{r}
+# Generates barplot with cell_line_barplot function, using user given parameters
+cell_line_barplot(dataset = filtered, aes.x = filtered$TSPAN6, aes.y = reorder(filtered$StrippedCellLineName, filtered$TSPAN6))
+```
 
 
 ## Other ways for visualising expression data
@@ -188,38 +188,95 @@ cell_line_barplot(dataset = head(merged), gene = "TSPAN6")
 
 # Developing the application
 
-**20-11-2024**
+
+## Thinking about what should be in the application
+
+**21-11-2024**
+
+There is a lot of metadata available for these datasets. In the chapter 'Importing data', all metadata variables can be seen, with a short explanation on what exactly they are. It is important to beforehand realize what metadata is important to include in the application, which is what I will do today. In the table below all variables that I have chosen are shown. I will further discuss these with the teachers whether this is a good selection.
+
+| Variable               | Options                                                                                                                       | Description                                                                                                                                                                               |
+|------------------------|-------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Gene                   | 19192 different genes                                                                                                         | Allows the user to filter on gene, which allows visualisation of the expression per cell line of the chosen gene.                                                                         |
+| Age category           | adult, pediatric, fetus, unknown                                                                                              | Allows the user to filter on age category, which is useful in research in cancer types in specific life stages.                                                                           |
+| Sex                    | female, male, unknown                                                                                                         | Allows the user to filter on sex, which is useful if they are interested in cancer cell lines in specifically females or males.                                                           |
+| Race                   | caucasian, asian, african, east_indian, north_african, black_or_african_american, american_indian_or_native_american, unknown | Allows the user to filter on race, which is useful if they are interested in cancer cell lines in specific races.                                                                         |
+| OncotreeLineage        | various cancer families, e.g.: lung, kidney, breast, skin                                                                     | This is the cancer 'family', also known as the lineage. Including this filter will allow the user to search within specific fields for cancer, which allows for more generalized results. |
+| OncotreePrimaryDisease | various cancer types, e.g.: melanoma, embryonal tumor, retinoblastoma, hepatoblastoma                                         | This is the actual cancer type of the model. Including this filter allows the user to very specifically search for certain types of cancer.                                               |
+
+
+## Developing a wireframe
+
+**21-11-2024**
+
+Before starting on making the application, it is good to think of a general design first. Today I will do this using a [wireframe builder website](https://wireframe.cc/). My idea for the application design is to have all the user parameters on the left side and have a display for the generated figure on the right side. The left side first consists of a short explanation for usage of the tool and background information on what the tool does. The dropdown filters are objects where the user can choose a specific filter on a specific variable, e.g. selecting "Adult" for the filter "Age Category". For the slider objects, the user can give a certain value for certain variables, such as 'minimum expression levels' or 'number of cell lines displayed'. I want to make the graph scrollable, if possible, for when a user wants to view a large number of cell lines for the chosen gene. However I will have to look into whether a limit should be set for this, as to not make the application lag too much. At the bottom of the left side there are two checkbox objects. Here the user can check/uncheck certain filters, such as 'display cell lines where expression = 0'. Above the generated figure, the chosen parameters will be updated and displayed each time a new figure is generated.
+
+
+The variables I want to include in the application have been discussed in the former subchapter. 
+
+![A concept wireframe for the DepMap data visualisation application, made using wireframe.cc](media/wireframe.png)
+
+
+**20-11-2024, 21-11-2024**
 
 I have started trying to develop the application using the documentation for Shiny and using the online version of the book ('Mastering Shiny')[https://mastering-shiny.org/index.html] by Hadley Wickham. This is by no means the final version of the application, as I will first develop a wireframe for the final look, however I really wanted to already started practicing with Shiny.
+
+
 ```{r}
 ui <- fluidPage(
-  
-  # input dropdown menu's voor alle list variables
-  selectInput("gene_name", label = "Select gene", selected = TRUE, choices =
-                names(merged[44:ncol(merged)])),
-  selectInput("onco_family", label = "Select cancer family", selected = TRUE, choices
-              = merged$OncotreeLineage),
-  selectInput("onco_type", label = "Select type of cancer", selected = TRUE, choices
-              = merged$OncotreePrimaryDisease),
-  selectInput("sex", label = "Select sex", selected = TRUE, choices =
-                merged$Sex),
-  selectInput("race", label = "Select race", selected = TRUE, choices =
-                merged$PatientRace),
-  selectInput("age_category", label = "Select age category", selected = TRUE, choices
-              = merged$AgeCategory),
-  verbatimTextOutput("summary"),
-  tableOutput("table")
+  titlePanel("DepMap visualiser" # title
+  ),
+  sidebarLayout(
+    sidebarPanel(
+      
+      # input dropdown menu's for all list variables
+      selectInput("gene_name", label = "Select gene", selected = TRUE, choices =
+                    sort(names(merged[44:ncol(merged)]))),
+      selectInput("onco_family", label = "Select cancer family", selected = TRUE, choices =
+                    merged$OncotreeLineage),
+      selectInput("onco_type", label = "Select type of cancer", selected = TRUE, choices =
+                    merged$OncotreePrimaryDisease),
+      selectInput("sex", label = "Select sex", selected = TRUE, choices = merged$Sex),
+      selectInput("race", label = "Select race", selected = TRUE, choices = merged$PatientRace),
+      selectInput("age_category", label = "Select age category", selected = TRUE, choices =
+                    merged$AgeCategory),
+       textInput("gene_name2", "Enter gene of interest"),
+      
+      #sliderInput("expression_range", "Show expression levels between", value = c(5, 10), min = 0, max = 10),
+      submitButton(text = "Apply settings", icon = NULL, width = NULL),
+
+    ),
+    
+    mainPanel(
+
+      # outputs
+    htmlOutput("title"),
+    htmlOutput("text"),
+    plotlyOutput("plotly"),
+    
+    )
+  )
 )
 
 server <- function(input, output, session) {
- 
+  observeEvent(input$gene_name, {
+    print(paste0("You have chosen: ", input$gene_name))
+  })
+  output$title <- renderText("<B>Parameters used:<B>")
+  output$text <- renderText({paste0("Gene: ", input$gene_name, "<br> Cancer family:", input$onco_family)})
+  
+  output$plotly <- renderPlotly({
+    filtered <- subset(merged, Sex == input$sex & PatientRace == input$race & AgeCategory == input$ age_category)
+    plot <- ggplot(data=filtered, aes_string(x=input$gene_name, y = "StrippedCellLineName"))+ geom_bar(stat="identity", fill = 'blue') + ylab("Tumor Cell Line") + xlab(paste0(input$gene_name, " Expression level (log2 TPM)")) + theme_minimal()
+    
+    })
+
 #  observe({updateSelectInput(session, "onco_type", choices = merged$OncotreePrimaryDisease[subset(merged, OncotreeLineage == input$names(onco_family))])})
   
+
 }
 
 shinyApp(ui, server)
-
-
 
 ```
 
