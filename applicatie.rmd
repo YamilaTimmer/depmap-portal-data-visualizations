@@ -230,21 +230,18 @@ ui <- fluidPage(
     sidebarPanel(
       
       # input dropdown menu's for all list variables
-      selectInput("gene_name", label = "Select gene", selected = TRUE, choices =
-                    sort(names(merged[44:ncol(merged)]))),
-      selectInput("onco_family", label = "Select cancer family", selected = TRUE, choices =
-                    merged$OncotreeLineage),
+      selectizeInput('gene_name', label = "Select gene of interest", choices = "A1BG"),
+      selectizeInput("onco_family", label = "Select cancer family", selected = TRUE, choices =
+                    sort(merged$OncotreeLineage)),
       selectInput("onco_type", label = "Select type of cancer", selected = TRUE, choices =
-                    merged$OncotreePrimaryDisease),
-      selectInput("sex", label = "Select sex", selected = TRUE, choices = merged$Sex),
-      selectInput("race", label = "Select race", selected = TRUE, choices = merged$PatientRace),
+                    sort(merged$OncotreePrimaryDisease)),
+      selectizeInput("sex", label = "Select sex", selected = TRUE, choices = merged$Sex, multiple = TRUE),
+      selectInput("race", label = "Select race", selected = TRUE, choices = merged$PatientRace, multiple = TRUE),
       selectInput("age_category", label = "Select age category", selected = TRUE, choices =
-                    merged$AgeCategory),
-       textInput("gene_name2", "Enter gene of interest"),
+                    merged$AgeCategory, multiple = TRUE),
       
-      #sliderInput("expression_range", "Show expression levels between", value = c(5, 10), min = 0, max = 10),
       submitButton(text = "Apply settings", icon = NULL, width = NULL),
-
+       checkboxInput("checkbox", label = "Hide cell lines where gene expression = 0?", value = FALSE),
     ),
     
     mainPanel(
@@ -263,11 +260,31 @@ server <- function(input, output, session) {
     print(paste0("You have chosen: ", input$gene_name))
   })
   output$title <- renderText("<B>Parameters used:<B>")
-  output$text <- renderText({paste0("Gene: ", input$gene_name, "<br> Cancer family:", input$onco_family)})
+
+  function(ID, choices) {
+    updateSelectizeInput(session, ID, choices = choices, server = TRUE)
+    
+    
+  }
+    
+    
+  updateSelectizeInput(session, 'gene_name', choices =
+                         sort(names(merged[44:ncol(merged)])), server = TRUE)
+  
+  
+  #output$text <- renderText({paste0("Gene: ", input$gene_name, "<br> Cancer family: ", input$onco_family, "<br> Cancer type: ", input$onco_type, "<br> Sex: ", input$sex, "<br> Race: ", input$race, "<br> Age category: ", input$age_category)})
   
   output$plotly <- renderPlotly({
-    filtered <- subset(merged, Sex == input$sex & PatientRace == input$race & AgeCategory == input$ age_category)
-    plot <- ggplot(data=filtered, aes_string(x=input$gene_name, y = "StrippedCellLineName"))+ geom_bar(stat="identity", fill = 'blue') + ylab("Tumor Cell Line") + xlab(paste0(input$gene_name, " Expression level (log2 TPM)")) + theme_minimal()
+    filtered <- subset(merged, Sex %in% input$sex & PatientRace %in% input$race & AgeCategory %in% input$ age_category)
+    if (input$checkbox == TRUE) {
+      
+      filtered <- subset(filtered, input$gene_name != 0 )
+    
+    }
+    
+    #TODO: reorderen van strippedcelllinename adhv expressieniveaus
+    plot <- ggplot(data=filtered, aes_string(x=input$gene_name, y = "StrippedCellLineName")) +
+      geom_bar(stat="identity", fill = 'blue') + ylab("Tumor Cell Line") + xlab(paste0(input$gene_name, " Expression level (log2 TPM)")) + theme_minimal()
     
     })
 
