@@ -18,7 +18,18 @@ library(shiny)
 library(ggplot2)
 library(tidyr)
 library(plotly)
+library(shinythemes)
 ```
+
+# Tools
+
+|**Tool**       |**Version** |**Purpose**                               |**License**
+|------------|----------------------|--------------------------------------------|-----------------
+|[shiny]()||
+|[ggplot2]()||
+|[tidyr]()||
+|[plotly]()||
+|[shinythemes]()||
 
 
 # Data Exploration
@@ -138,8 +149,8 @@ for ( col in 44:ncol(merged)){
 }
 ```
 
-## Visualization
-### Barplot
+# Visualization
+## Barplot
 
 **20-11-2024**
 
@@ -217,31 +228,61 @@ The variables I want to include in the application have been discussed in the fo
 ![A concept wireframe for the DepMap data visualisation application, made using wireframe.cc](media/wireframe.png)
 
 
-**20-11-2024, 21-11-2024**
+**21-11-2024**
 
-I have started trying to develop the application using the documentation for Shiny and using the online version of the book ('Mastering Shiny')[https://mastering-shiny.org/index.html] by Hadley Wickham. This is by no means the final version of the application, as I will first develop a wireframe for the final look, however I really wanted to already started practicing with Shiny.
+I have started trying to develop the application using the documentation for Shiny and using the online version of the book ('Mastering Shiny')[https://mastering-shiny.org/index.html] by Hadley Wickham. This is by no means the final version of the application, I will be using the wireframe I have made to start a rough sketch of the application and will finetune it later, by asking for feedback. 
 
+For today I just focused on making a basic layout, according to the wireframe. First I will be adding the code for a basic ui layout, as following:
+
+```
+ui <- fluidPage(
+  titlePanel(),
+  sidebarLayout(
+    sidebarPanel(),
+    mainPanel()
+  )
+)
+```
+Next I add the actual elements that the user can interact with, which are `selectInput` objects. I do this for each of the parameters that I want the user to be able to change. Below is an example for the selectInput for the cancer type. By adding selected = TRUE, the aplpication will automatically select the option that is at the top of the list. By adding the sort()-function, the choices will be displayed in alphabetical order from A-Z.
+
+```{r}
+selectInput("onco_type", label = "Select type of cancer", selected = TRUE, choices =
+                    sort(merged$OncotreePrimaryDisease))
+```
+
+I also add a `submit-button`, so that when I add the plot, the application won't try to constantly refresh the plot every time the user selects an option, because there is 5 different parameters which means that if the user wants to change those 5 parameters to generate 1 plot, the application will refresh the plot 5 times in the meantime. By adding the submit button the user can decide when they want to refresh and show a plot with the newly adjusted parameters.
+
+```{r}
+submitButton(text = "Apply settings")
+```
+
+**22-11-2024**
+
+**24-11-2024**
+The current 'selectInputs' with the dropdown menus for all parameters offered so far (gene_name, onco_type, sex, race, and age_category) all offer a lot of choices, with gene nemes for example being over 19000 options. When running the application I would get warnings on each of these selectInputs having too many options and this was noticeable by the long time the app took to launch every time. Today I looked into the problem and I discovered a better alternative to the selectInputs function, which is the 'selectizeInput' function. `selectizeInput` can be used in 2 different ways. 
+
+The first way is to just replace all the selectInputs in the ui, however this will not solve the problem of the application being slow, as this uses the client-side selectize input. The client-side selectize input uses JavaScript to process the searching as the user is typing in an option. So for example when a user starts typing 'Fe' in the sex input, the application will show 'Female' as an option. It works the same with other inputs with more choices, such as the gene_name. 
+
+The second way to use `selectizeInput`, is to add it to the ui and update it through the server, this is the `server-side selectize input`. The server-side selectize input uses R to process the searching, which (when updated) returns the filtered data to selectize. The latter option is way more efficient and thus a good option for solving the problem I have with the application launching and updating too slow.
+
+I have updated all my `selectInput` functions to `selectizeInput` and have added a selectizeInput updating function to the server, which updates all of the selectizeInputs from the ui.
 
 ```{r}
 ui <- fluidPage(
-  titlePanel("DepMap visualiser" # title
-  ),
+  titlePanel("DepMap visualiser"), #title
   sidebarLayout(
     sidebarPanel(
       
       # input dropdown menu's for all list variables
       selectizeInput('gene_name', label = "Select gene of interest", choices = "A1BG"),
-      selectizeInput("onco_family", label = "Select cancer family", selected = TRUE, choices =
-                    sort(merged$OncotreeLineage)),
-      selectInput("onco_type", label = "Select type of cancer", selected = TRUE, choices =
-                    sort(merged$OncotreePrimaryDisease)),
-      selectizeInput("sex", label = "Select sex", selected = TRUE, choices = merged$Sex, multiple = TRUE),
-      selectInput("race", label = "Select race", selected = TRUE, choices = merged$PatientRace, multiple = TRUE),
-      selectInput("age_category", label = "Select age category", selected = TRUE, choices =
-                    merged$AgeCategory, multiple = TRUE),
-      
-      submitButton(text = "Apply settings", icon = NULL, width = NULL),
-       checkboxInput("checkbox", label = "Hide cell lines where gene expression = 0?", value = FALSE),
+      #selectizeInput("onco_family", label = "Select cancer family", choices = "Adrenal Gland"),
+      selectizeInput("onco_type", label = "Select type of cancer", choices = "Adrenocortical Carcinoma"),
+      selectizeInput("sex", label = "Select sex", choices = "Female", multiple = TRUE),
+      selectizeInput("race", label = "Select race", choices = "caucasian",
+                     multiple = TRUE),
+      selectizeInput("age_category", label = "Select age category", choices = "Adult", multiple = TRUE),
+      checkboxInput("checkbox", label = "Hide cell lines where gene expression = 0?", value = FALSE),
+      submitButton(text = "Apply settings"),
     ),
     
     mainPanel(
@@ -256,36 +297,35 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  observeEvent(input$gene_name, {
-    print(paste0("You have chosen: ", input$gene_name))
-  })
+
   output$title <- renderText("<B>Parameters used:<B>")
 
-  function(ID, choices) {
-    updateSelectizeInput(session, ID, choices = choices, server = TRUE)
-    
-    
+  selectize_input <- function(ID, choices, selected) {
+    updateSelectizeInput(session, ID, choices = choices, server = TRUE, selected = selected)
   }
     
-    
-  updateSelectizeInput(session, 'gene_name', choices =
-                         sort(names(merged[44:ncol(merged)])), server = TRUE)
+    selectize_input(ID = 'gene_name', choices = sort(names(merged[44:ncol(merged)])), selected = "A1BG")
+    #selectize_input(ID = 'onco_family', choices = sort(merged$OncotreeLineage), selected = "Adrenal
+    # Gland")
+    selectize_input(ID = 'onco_type', choices = sort(merged$OncotreePrimaryDisease), selected =
+                      "Adrenocortical Carcinoma")
+    selectize_input(ID = 'sex', choices = merged$Sex, selected = "Female")
+    selectize_input(ID = "race", choices = merged$PatientRace, selected = "caucasian")
+    selectize_input(ID = "age_category", choices = merged$AgeCategory, selected = "Adult")
+
+    output$text <- renderText({paste0("Gene: ", input$gene_name, "<br> Cancer type: ", input$onco_type,
+                                      "<br> Sex: ", input$sex, "<br> Race: ", input$race, "<br> Age
+                                      category: ", input$age_category)})
   
-  
-  #output$text <- renderText({paste0("Gene: ", input$gene_name, "<br> Cancer family: ", input$onco_family, "<br> Cancer type: ", input$onco_type, "<br> Sex: ", input$sex, "<br> Race: ", input$race, "<br> Age category: ", input$age_category)})
-  
-  output$plotly <- renderPlotly({
-    filtered <- subset(merged, Sex %in% input$sex & PatientRace %in% input$race & AgeCategory %in% input$ age_category)
-    if (input$checkbox == TRUE) {
-      
-      filtered <- subset(filtered, input$gene_name != 0 )
-    
-    }
-    
-    #TODO: reorderen van strippedcelllinename adhv expressieniveaus
+    output$plotly <- renderPlotly({ 
+      filtered <- subset(merged, Sex %in% input$sex & PatientRace %in% input$race & AgeCategory %in%
+                           input$age_category)
+
     plot <- ggplot(data=filtered, aes_string(x=input$gene_name, y = "StrippedCellLineName")) +
-      geom_bar(stat="identity", fill = 'blue') + ylab("Tumor Cell Line") + xlab(paste0(input$gene_name, " Expression level (log2 TPM)")) + theme_minimal()
-    
+      geom_bar(stat="identity", fill = 'blue') + ylab("Tumor Cell Line") + xlab(paste0(input$gene_name, "
+                                                                                       Expression level
+                                                                                       (log2 TPM)")) +
+      theme_minimal()
     })
 
 #  observe({updateSelectInput(session, "onco_type", choices = merged$OncotreePrimaryDisease[subset(merged, OncotreeLineage == input$names(onco_family))])})
@@ -295,5 +335,10 @@ server <- function(input, output, session) {
 
 shinyApp(ui, server)
 
+
+    
+#TODO: reorderen van strippedcelllinename adhv expressieniveaus
+# TODO: onco family toevoegen?
+# TODO: checkbox voor wegfilteren 0 waarden
 ```
 
