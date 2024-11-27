@@ -149,6 +149,18 @@ for ( col in 44:ncol(merged)){
 }
 ```
 
+## Making the data tidy
+
+**26-11-2024**
+The merged data (consisting of the metadata and the expression data) is not 'clean' data. Meaning it does not meet the Tidy requirements. The merged data contains a seperate column for each gene and within each column it has the expression levels per row (meaning per tumor cell line). However the preferred, or Tidy way, is to have one column per variable, meaning that all gene columns should be combined into one 'gene' column and all expression columns should be combined into one 'expression' column. This can be achieved using the tidyr function `pivot_longer()`. The gene columns are selected by giving a vector which contains the column names. The index 44:ncol(merged) selects all columns starting from column 44, which is where the gene columns start. The gene columns are converted to one gene column, named '*gene*' and all expression values are converted to a seperate column, named '*expression*'.
+
+```{r}
+tidy_merged <- merged %>% pivot_longer(cols = c(names(merged[44:ncol(merged)])),
+                    names_to = 'gene',
+                    values_to = 'expression') 
+```
+
+
 # Visualization
 ## Barplot
 
@@ -267,6 +279,19 @@ The second way to use `selectizeInput`, is to add it to the ui and update it thr
 
 I have updated all my `selectInput` functions to `selectizeInput` and have added a selectizeInput updating function to the server, which updates all of the selectizeInputs from the ui.
 
+**26-11-2024**
+Today I have adjusted the ggplot code, to make the expression values be displayed from high to low in the plot. In order to do this I need to use the reorder() function, which takes 2 arguments, the object that needs to be reordered and an object based on which the reordering will take place. The object that needs to be reordered is the StrippedCellLineName, which is the column with all the cancer cell line names. These need to be reordered based on the expression values of the corresponding rows of the chosen gene. These values are acquired by using `input$gene_name`, which contains the input of the gene_name dropdown menu in the application. `input$gene_name` returns the chosen gene name as a string, hence why `!!sym()` will have to be used to convert the string to a symbol, so the corresponding column can be found in the given data (filtered).
+
+The full aes will then be as following:
+
+```{r}
+ggplot(
+  data = filtered, aes(x = !!sym(input$gene_name), y = reorder(StrippedCellLineName,
+                                                              !!sym(input$gene_name))))
+```
+
+
+
 ```{r}
 ui <- fluidPage(
   titlePanel("DepMap visualiser"), #title
@@ -274,14 +299,22 @@ ui <- fluidPage(
     sidebarPanel(
       
       # input dropdown menu's for all list variables
-      selectizeInput('gene_name', label = "Select gene of interest", choices = "A1BG"),
+      selectizeInput('gene_name', label = "Select gene of interest", choices =
+                       sort(names(merged[44:ncol(merged)]))[1]), # first gene
       #selectizeInput("onco_family", label = "Select cancer family", choices = "Adrenal Gland"),
-      selectizeInput("onco_type", label = "Select type of cancer", choices = "Adrenocortical Carcinoma"),
+      selectInput('cellline_name', label = "Select celline", choices =
+                       sort(merged$StrippedCellLineName)),
+      selectizeInput("onco_type", label = "Select type of cancer", choices = "Adrenocortical
+                     Carcinoma"),
       selectizeInput("sex", label = "Select sex", choices = "Female", multiple = TRUE),
       selectizeInput("race", label = "Select race", choices = "caucasian",
                      multiple = TRUE),
       selectizeInput("age_category", label = "Select age category", choices = "Adult", multiple = TRUE),
-      checkboxInput("checkbox", label = "Hide cell lines where gene expression = 0?", value = FALSE),
+      checkboxInput("checkbox", label = "Hide cell lines where gene expression = 0?", value =
+                      FALSE),
+      sliderInput("cell_line_number", "Number of cell lines displayed:",
+                  min = 1, max = 100,
+                  value = 1, step = 1),
       submitButton(text = "Apply settings"),
     ),
     
@@ -304,11 +337,12 @@ server <- function(input, output, session) {
     updateSelectizeInput(session, ID, choices = choices, server = TRUE, selected = selected)
   }
     
-    selectize_input(ID = 'gene_name', choices = sort(names(merged[44:ncol(merged)])), selected = "A1BG")
+    selectize_input(ID = 'gene_name', choices = sort(names(merged[44:ncol(merged)])),
+                    selected = sort(names(merged[44:ncol(merged)]))[1])
     #selectize_input(ID = 'onco_family', choices = sort(merged$OncotreeLineage), selected = "Adrenal
     # Gland")
-    selectize_input(ID = 'onco_type', choices = sort(merged$OncotreePrimaryDisease), selected =
-                      "Adrenocortical Carcinoma")
+    selectize_input(ID = 'onco_type', choices = sort(merged$OncotreePrimaryDisease), selected
+                    = "Adrenocortical Carcinoma")
     selectize_input(ID = 'sex', choices = merged$Sex, selected = "Female")
     selectize_input(ID = "race", choices = merged$PatientRace, selected = "caucasian")
     selectize_input(ID = "age_category", choices = merged$AgeCategory, selected = "Adult")
@@ -317,17 +351,28 @@ server <- function(input, output, session) {
                                       "<br> Sex: ", input$sex, "<br> Race: ", input$race, "<br> Age
                                       category: ", input$age_category)})
   
-    output$plotly <- renderPlotly({ 
-      filtered <- subset(merged, Sex %in% input$sex & PatientRace %in% input$race & AgeCategory %in%
-                           input$age_category)
-
-    plot <- ggplot(data=filtered, aes_string(x=input$gene_name, y = "StrippedCellLineName")) +
-      geom_bar(stat="identity", fill = 'blue') + ylab("Tumor Cell Line") + xlab(paste0(input$gene_name, "
-                                                                                       Expression level
-                                                                                       (log2 TPM)")) +
-      theme_minimal()
+    output$plotly <- renderPlotly({
+      filtered <- subset(merged, Sex %in% input$sex & PatientRace %in% input$race &
+                           AgeCategory %in% input$age_category)
+      
+      
+#      filtered <- subset(merged, Sex %in% input$sex & PatientRace %in% input$race &
+#                           AgeCategory %in% input$age_category)
+      #if (input$checkbox == TRUE) {
+       # subset(filtered, !!sym(input$gene_name) != 0)}
+      
+      
+      plot <- ggplot(data = filtered, 
+                     aes(x = !!sym(input$gene_name), 
+                         y = reorder(StrippedCellLineName, !!sym(input$gene_name)))) +
+                                                 geom_bar(stat = "identity", fill = 'blue') +
+                                                 ylab("Tumor Cell Line") +
+                                                 xlab(paste0(input$gene_name, "Expression
+                                                 level(log2 TPM)")) +
+        theme_minimal()
     })
 
+#data = head(filtered, as.integer(input$range))
 #  observe({updateSelectInput(session, "onco_type", choices = merged$OncotreePrimaryDisease[subset(merged, OncotreeLineage == input$names(onco_family))])})
   
 
@@ -335,10 +380,119 @@ server <- function(input, output, session) {
 
 shinyApp(ui, server)
 
-
-    
-#TODO: reorderen van strippedcelllinename adhv expressieniveaus
 # TODO: onco family toevoegen?
 # TODO: checkbox voor wegfilteren 0 waarden
 ```
+
+```{r}
+ui <- fluidPage(
+  titlePanel("DepMap visualiser"), #title
+  sidebarLayout(
+    sidebarPanel(
+      
+      # input dropdown menu's for all list variables
+      selectizeInput('gene_name', label = "Select gene of interest", choices = "A1BG"),
+      selectizeInput("sex", label = "Select sex", choices = "Female", multiple = TRUE),
+      sliderInput("cell_line_number", "Number of cell lines displayed:",
+                  min = 1, max = 100,
+                  value = 1, step = 1),
+      submitButton(text = "Apply settings"),
+      
+    ),
+    
+    mainPanel(
+
+    # outputs
+    htmlOutput("title"),
+    htmlOutput("text"),
+    plotlyOutput("plotly"),
+    
+    )
+  )
+)
+
+server <- function(input, output, session) {
+
+  selectize_input <- function(ID, choices, selected) {
+    updateSelectizeInput(session, ID, 
+                         choices = choices, 
+                         server = TRUE, 
+                         selected = selected)
+  }
+  
+    selectize_input(ID = 'gene_name', choices = expr_test$gene,
+                    selected = sort(expr_test$gene[1]))
+    selectize_input(ID = 'sex', choices = unique(expr_test$Sex), selected = "Female")
+
+    output$plotly <- renderPlotly({
+  
+      filtered <- filter(expr_test, Sex %in% input$sex 
+                         & gene == input$gene_name)
+      
+      filtered <- head(filtered, input$cell_line_number)
+      
+      #filtered <- dplyr::arrange(filtered, expression)
+ 
+
+      plot <- ggplot(data = filtered, 
+                     aes(x = expression, 
+                         y = StrippedCellLineName)) +
+        geom_bar(stat = "identity", fill = 'blue') + 
+        ylab("Tumor Cell Line") +
+        xlab(paste0(input$gene_name, " Expression level(log2 TPM)")) +
+        theme_minimal()
+    })
+
+}
+
+shinyApp(ui, server)
+
+# TODO: onco family toevoegen?
+# TODO: checkbox voor wegfilteren 0 waarden
+```
+
+
+```{r}
+expr_test <- merged %>% pivot_longer(cols=c(names(merged[44:ncol(merged)])),
+                    names_to='gene',
+                    values_to='expression') 
+
+```
+
+```{r}
+      filtered <- filter(merged, Sex %in% input$sex 
+                         & PatientRace %in% input$race 
+                         & AgeCategory %in% input$age_category ) %>%
+        dplyr::arrange(merged, !!sym(input$gene_name)) %>%
+        head(input$cell_line_number)
+```
+
+
+```{r}
+filtered <- filter(expr_test, Sex == "Female" 
+                         & AgeCategory == "Adult"
+                         & gene == "CD99") 
+
+```
+
+
+```{r}
+ggplot(data = filtered, 
+                     aes(x = expression, 
+                         y = StrippedCellLineName)) +
+                                                 geom_bar(stat = "identity", fill = 'blue')
+
+```
+
+```{r}
+TestFilter <- reactive({
+    Test2008 %>% filter(Year %in% input$YearSelect)
+  })
+
+
+req(TestFilter())
+
+```
+
+https://stackoverflow.com/questions/63916449/how-to-filter-data-with-r-shiny
 
