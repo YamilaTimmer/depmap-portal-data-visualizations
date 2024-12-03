@@ -6,16 +6,17 @@ ui <- fluidPage(
     sidebarPanel(
       
       # input dropdown menu's for all list variables
-      selectizeInput('gene_name', label = "Select gene of interest", choices = "A1BG"),
-      selectizeInput("onco_type", label = "Select type of cancer", choices = "Adrenocortical
-                     Carcinoma"),
-      selectizeInput("sex", label = "Select sex", choices = "Female", multiple = TRUE),
-      selectizeInput("race", label = "Select race", choices = "caucasian",
+      selectizeInput('gene_name', label = "Select gene of interest", choices = NULL),
+      selectizeInput("onco_type", label = "Select type of cancer", choices = NULL, multiple = TRUE),
+      selectizeInput("sex", label = "Select sex", choices = NULL, multiple = TRUE),
+      selectizeInput("race", label = "Select race", choices = NULL,
                      multiple = TRUE),
-      selectizeInput("age_category", label = "Select age category", choices = "Adult", multiple = TRUE),
+      selectizeInput("age_category", label = "Select age category", choices = NULL, multiple = TRUE),
       sliderInput("cell_line_number", "Number of cell lines displayed:",
                   min = 1, max = 100,
                   value = 1, step = 1),
+      checkboxInput("checkbox", label = "Hide cell lines where gene expression = 0?", value =
+                      FALSE),
       submitButton(text = "Apply settings"),
       
     ),
