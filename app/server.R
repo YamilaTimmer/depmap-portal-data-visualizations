@@ -1,3 +1,4 @@
+source("functions.R")
 library(shiny)
 
 server <- function(input, output, session) {
@@ -17,24 +18,28 @@ server <- function(input, output, session) {
   selectize_input(ID = 'sex', choices = unique(tidy_merged$Sex), 
                   selected = c("Female", "Male"))
   selectize_input(ID = "race", choices = merged$PatientRace, selected = 
-                    c("caucasian", "asian", "black_or_african_american", "african", 
-                      "american_indian_or_native_american", "east_indian", "north_african"))
+                    c("caucasian", "asian", "black_or_african_american",
+                      "african", "american_indian_or_native_american", 
+                      "east_indian", "north_african"))
   selectize_input(ID = "age_category", choices = merged$AgeCategory, selected = 
                     c("Fetus", "Pediatric", "Adult"))
-  
+  selectize_input(ID = 'cell_line', choices = unique(tidy_merged$StrippedCellLineName),
+                  selected = sort(tidy_merged$StrippedCellLineName[1]))
   
   
   filter_data <- function(data, input){
     
     filtered <- data %>% 
-      filter(Sex %in% input$sex & PatientRace %in% input$race 
-             & AgeCategory %in% input$age_category & gene == input$gene_name 
-             & OncotreePrimaryDisease %in% input$onco_type)  %>%   
+      filter(Sex %in% input$sex 
+             & PatientRace %in% input$race 
+             & AgeCategory %in% input$age_category 
+             & gene == input$gene_name 
+             & OncotreePrimaryDisease %in% input$onco_type) %>% 
       dplyr::arrange(desc(expression))
     
     
       # Uses the input of the slider to decide how many cell lines will be displayed
-      filtered <- head(filtered, input$cell_line_number)
+    filtered <- head(filtered, input$cell_line_number)
 
     # If checkbox is checked, expression values of 0 will not be displayed
     if(input$checkbox == TRUE) 
@@ -46,26 +51,34 @@ server <- function(input, output, session) {
     
   }
   
-  generate_plot <- function(data, input){
-    
-    ggplot(data = data, 
-           aes(x = expression, 
-               y = reorder(StrippedCellLineName, expression))) +
-      geom_bar(stat = "identity", fill = 'blue') + 
-      ylab("Tumor Cell Line") +
-      xlab(paste0(input$gene_name, " Expression level(log2 TPM)")) +
-      theme_minimal()
-    
-    
-  }
   
-  # Renders the plot using the previously made functions
-  output$plotly <- renderPlotly({
+  output$plot_per_cell_line <- renderPlotly({
     
     filtered <- filter_data(tidy_merged, input)
+    filtered_per_cell_line <- filtered %>% filter(StrippedCellLineName == 
+                                                    input$cell_line)
     
-    plot <- generate_plot(filtered, input)
-    return(plot)
+    plot_per_cell_line <- generate_plot_per_cell_line(filtered_per_cell_line)
+    return(plot_per_cell_line)
+    
+    
+  })
+  
+
+  output$table <- renderDataTable({
+    filtered <- filter_data(tidy_merged, input)
+    generate_table(filtered)
+  })
+  
+  
+  # Renders the plot using the previously made functions
+  output$plot_per_gene <- renderPlotly({
+    
+    filtered <- filter_data(tidy_merged, input)
+    filtered_per_gene <- filtered %>% filter(gene == input$gene_name)
+    
+    plot_per_gene <- generate_plot(filtered_per_gene)
+    return(plot_per_gene)
     
     
   })
