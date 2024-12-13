@@ -1,3 +1,7 @@
+
+tidy_merged <- read.csv("C:/Users/yamil/OneDrive - Hanze/Bio-informatica/Jaar 2/2.1 applicatie/goede_git/tidy_merged")
+
+
 generate_plot_per_cell_line <- function(data){
   
   ggplot(data = data, aes(x=gene,y=expression)) +

@@ -108,7 +108,6 @@ model <- read.csv("/homes/ytimmer2/kwartaal6/applicatie/data/Model.csv")
 expression_db <- read.csv("/homes/ytimmer2/kwartaal6/applicatie/data/OmicsExpressionProteinCodingGenesTPMLogp1.csv")
 ```
 
-
 ## Merging the datasets
 
 **19-11-2024**
@@ -171,7 +170,10 @@ The figure below is generated using the naniar package, which offers tools to vi
 ```{r}
 gg_miss_var(tidy_merged, show_pct = TRUE) + labs(y = "Missing values (%)")
 ```
+```{r}
+testtttt <- tidy_merged[tidy_merged == ''] <- NA
 
+```
 # Visualization
 ## Barplot
 
@@ -317,4 +319,42 @@ The full aes will then be as following:
 ggplot(
   data = filtered, aes(x = !!sym(input$gene_name), y = reorder(StrippedCellLineName,
                                                               !!sym(input$gene_name))))
+```
+
+```{r}
+generate_table <- function(data, input){
+    tidy_merged %>% select(matches("StrippedCellLineName"), matches("gene"),
+                           matches("expression"))
+    
+  }
+
+```
+
+```{r}
+tidy_merged %>% select(matches("StrippedCellLineName"), matches("gene"), matches("expression"))
+```
+
+```{r}
+base <- ggplot(mpg2, aes(displ, hwy)) + 
+  geom_blank() + 
+  xlab(NULL) + 
+  ylab(NULL)
+
+base + facet_wrap(~class, ncol = 3)
+base + facet_wrap(~class, ncol = 3, as.table = FALSE)
+
+```
+
+```{r}
+filtered <- tidy_merged %>% filter(OncotreePrimaryDisease == "Ovarian Epithelial Tumor" 
+                                   & Sex == "Female"
+                                   & gene == "A1BG" | gene == "TSPAN6" )
+```
+
+facet_wrap to compare multiple genes, will probably be maximum of 10 in the application
+```{r}
+ggplot(head(filtered), aes(CellLineName, expression)) +
+  geom_bar(stat = "identity", fill = 'blue') +
+  geom_blank() + facet_wrap(~ gene)
+#TODO download csv downloadhandler
 ```
