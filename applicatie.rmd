@@ -12,7 +12,6 @@ lang: en
 bibliography: DepMap.bib
 ---
 
-
 ```{r}
 library(shiny)
 library(ggplot2)
@@ -101,11 +100,12 @@ In order to analyse the data, I first have to import the needed data files. The 
 
 In the following two code blocks I read in both .csv-files and save them as variables. I use read.csv to do so, because of the corresponding file type.
 ```{r}
-model <- read.csv("/homes/ytimmer2/kwartaal6/applicatie/data/Model.csv")
+#model <- read.csv("/homes/ytimmer2/kwartaal6/applicatie/data/Model.csv")
+model <- read.csv("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\Model.csv", na.strings = "")
 ```
 
 ```{r}
-expression_db <- read.csv("/homes/ytimmer2/kwartaal6/applicatie/data/OmicsExpressionProteinCodingGenesTPMLogp1.csv")
+expression_db <- read.csv("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\OmicsExpressionProteinCodingGenesTPMLogp1.csv")
 ```
 
 ## Merging the datasets
@@ -165,15 +165,12 @@ tidy_merged <- merged %>% pivot_longer(cols = c(names(merged[44:ncol(merged)])),
 
 **27-11-2024**
 
-The figure below is generated using the naniar package, which offers tools to visualise missing data. It can easily be told from the figure below that (almost) all values are missing in the `TissueOrigin`, `StagingSystem`, `PatientTumorGrade` and `DataSharedIndbGaP` columns. Even though the figure displays the amount of missing values as 100%, it cannot be certainly said that ALL values are missing, because of the size of the dataframe, so even if some rows do have these values, it will not show up in the figure. `WTSIMasterCellID` and `COSMICID` seem to have missing values in around half of the rows (a bit over 50%). And Age seems to be missing values in approximately 18.75% of the rows. All other variables seem to have a very low number of missing values, which makes these variables a good option as metadata to use for filtering in the application by the user.
+The figure below is generated using the naniar package, which offers tools to visualise missing data. It can easily be told from the figure below that (almost) all values are missing in the `TissueOrigin`, `StagingSystem`, `PatientTumorGrade` and `DataSharedIndbGaP` columns. Even though the figure displays the amount of missing values as 100%, it cannot be certainly said that ALL values are missing, because of the size of the dataframe, so even if some rows do have these values, it will not show up in the figure. `WTSIMasterCellID` and `COSMICID` seem to have missing values in around half of the rows (a bit over 50%). And Age seems to be missing values in approximately 18.75% of the rows. All other variables seem to have a very low number of missing values, which makes these variables a good option as metadata to use for filtering in the application by the user. However it seems there are a lot more missing values, given as "", instead of 'NA'. These need to be converted properly, so I have added '`na.strings=""`' to the read.csv statement for model.csv.
 
 ```{r}
 gg_miss_var(tidy_merged, show_pct = TRUE) + labs(y = "Missing values (%)")
 ```
-```{r}
-testtttt <- tidy_merged[tidy_merged == ''] <- NA
 
-```
 # Visualization
 ## Barplot
 
@@ -209,7 +206,7 @@ cell_line_barplot <- function(dataset, aes.x, aes.y) {
 
 To further filter on specific traits like age category, sex or race, simple statements like this can be used:
 ```{r}
-filtered <- subset(merged, Sex == "Female" & PatientRace == "caucasian" & TSPAN6 != 0 & AgeCategory == "Pediatric")
+filtered <- subset(tidy_merged, StrippedCellLineName %in% c('U2OS', 'RD'), gene %in% c('TSPAN6', 'TNMD', 'DPM1'))
 ```
 
 The new cell_line_barplot function can now be called as shown in the code below:
@@ -217,6 +214,19 @@ The new cell_line_barplot function can now be called as shown in the code below:
 # Generates barplot with cell_line_barplot function, using user given parameters
 cell_line_barplot(dataset = filtered, aes.x = filtered$TSPAN6, aes.y = reorder(filtered$StrippedCellLineName, filtered$TSPAN6))
 ```
+
+## Boxplot
+expressie van 1 celline
+
+```{r}
+# Generates barplot with cell_line_barplot function, using user given parameters
+cell_line_boxplot <- ggplot(head(tidy_merged), 
+                            aes(x = StrippedCellLineName, y = expression)) +
+  geom_boxplot() +
+  labs(x = "TSPAN6 Expression", y = "Cell Line Name") 
+cell_line_boxplot
+```
+
 
 
 ## Other ways of visualising the expression data
@@ -356,5 +366,8 @@ facet_wrap to compare multiple genes, will probably be maximum of 10 in the appl
 ggplot(head(filtered), aes(CellLineName, expression)) +
   geom_bar(stat = "identity", fill = 'blue') +
   geom_blank() + facet_wrap(~ gene)
-#TODO download csv downloadhandler
 ```
+
+
+
+

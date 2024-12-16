@@ -1,5 +1,5 @@
 
-tidy_merged <- read.csv("C:/Users/yamil/OneDrive - Hanze/Bio-informatica/Jaar 2/2.1 applicatie/goede_git/tidy_merged")
+#tidy_merged <- read.csv("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\tidy_merged.csv")
 
 
 generate_plot_per_cell_line <- function(data){
@@ -13,16 +13,16 @@ generate_plot_per_cell_line <- function(data){
 }
 
 generate_plot <- function(data){
-  
+  if (input$plot_type == 'Barchart') {
   ggplot(data = data, 
          aes(x = expression, 
              y = reorder(StrippedCellLineName, expression))) +
     geom_bar(stat = "identity", fill = 'blue') + 
     ylab("Tumor Cell Line") +
     xlab("Expression level(log2 TPM)") +
-    theme_minimal()
+    theme_minimal() + facet_wrap(~gene)
   
-  
+  }
 }
 
 generate_table <- function(data){
