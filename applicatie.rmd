@@ -165,7 +165,7 @@ tidy_merged <- merged %>% pivot_longer(cols = c(names(merged[44:ncol(merged)])),
 
 **27-11-2024**
 
-The figure below is generated using the naniar package, which offers tools to visualise missing data. It can easily be told from the figure below that (almost) all values are missing in the `TissueOrigin`, `StagingSystem`, `PatientTumorGrade` and `DataSharedIndbGaP` columns. Even though the figure displays the amount of missing values as 100%, it cannot be certainly said that ALL values are missing, because of the size of the dataframe, so even if some rows do have these values, it will not show up in the figure. `WTSIMasterCellID` and `COSMICID` seem to have missing values in around half of the rows (a bit over 50%). And Age seems to be missing values in approximately 18.75% of the rows. All other variables seem to have a very low number of missing values, which makes these variables a good option as metadata to use for filtering in the application by the user. However it seems there are a lot more missing values, given as "", instead of 'NA'. These need to be converted properly, so I have added '`na.strings=""`' to the read.csv statement for model.csv.
+The figure below is generated using the naniar package, which offers tools to visualise missing data. It can easily be told from the figure below that (almost) all values are missing in the `TissueOrigin`, `StagingSystem`, `PatientTumorGrade` and `DataSharedIndbGaP` columns. Even though the figure displays the amount of missing values as 100%, it cannot be certainly said that ALL values are missing, because of the size of the dataframe, so even if some rows do have these values, it will not show up in the figure. `WTSIMasterCellID` and `COSMICID` seem to have missing values in around half of the rows (a bit over 50%). And `Age` seems to be missing values in approximately 18.75% of the rows. All other variables seem to have a very low number of missing values, which makes these variables a good option as metadata to use for filtering in the application by the user. However it seems there are a lot more missing values, given as "", instead of 'NA'. These need to be converted properly, so I have added '`na.strings=""`' to the read.csv statement for model.csv. Now it seems clear that the amount of missing data is a lot larger than I first thought, as can be seen in figure. Other, not yet named columns that also seem to be missing (almost) all data are: `PatientTreatmentType`, `PatientTreatmentDetails`,`ModelDerivationMaterial`, `HCMIID`, `PatientTreatmentResponse`, `Stage`, `EngineeredModel`, `PatientTreatmentStatus`, `PublicComments`, `PatientMolecularSubtype`, `LegacyMolecularSubtype`. The following columns seem to be missing around 25-60% of the data: `PatientRace`, `LegacySubSubtype`, `SangerModelID`, `CatalogNumber`. Based on this data it will have to be carefully evaluated which metadata columns are suitable for allowing the user to filter the data.
 
 ```{r}
 gg_miss_var(tidy_merged, show_pct = TRUE) + labs(y = "Missing values (%)")
@@ -279,6 +279,11 @@ Before starting on making the application, it is good to think of a general desi
 The variables I want to include in the application have been discussed in the former subchapter. 
 
 ![A concept wireframe for the DepMap data visualisation application, made using wireframe.cc](media/wireframe.png)
+**02-12-2024**
+Today I have decided to add a second tab to the application, in which the filtered data is showcased in a table. So the user can easily view the values of the data, instead of only being able to read them from a graph. For this tab I have made another wireframe (see figure):
+
+![A concept wireframe for the table tab of the application, made using wireframe.cc](media/wireframe2.png)
+
 
 
 **21-11-2024**

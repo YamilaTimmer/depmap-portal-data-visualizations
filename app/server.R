@@ -28,7 +28,7 @@ server <- function(input, output, session) {
   selectize_input(ID = 'cell_line', choices = unique(tidy_merged$StrippedCellLineName),
                   selected = sort(tidy_merged$StrippedCellLineName[1]))
   
-  
+  # Filters data based on user input
   filter_data <- function(input){
     
     filtered <- tidy_merged %>% 
@@ -39,7 +39,7 @@ server <- function(input, output, session) {
              & OncotreePrimaryDisease %in% input$onco_type)
     
     
-      # Uses the input of the slider to decide how many cell lines will be displayed
+    # Uses the input of the slider to decide how many cell lines will be displayed
     filtered <- head(filtered, input$cell_line_number)
 
     # If checkbox is checked, expression values of 0 will not be displayed
@@ -52,7 +52,7 @@ server <- function(input, output, session) {
     
   }
   
-  
+  # Renders barchart that shows gene expression per cell line (tab 1)
   output$plot_per_cell_line <- renderPlotly({
     
     filtered <- filter_data(tidy_merged, input)
@@ -65,29 +65,28 @@ server <- function(input, output, session) {
     
   })
   
-
+  # Renders table with filtered data (tab 2)
   output$table <- renderDT({
     filtered <- filter_data(input)
     generate_table(filtered)
   })
   
-  # Renders the plot using the previously made functions
+  # Renders barchart that shows gene expression of one gene across multiple cell lines (tab 3)
   output$plot_per_gene <- renderPlotly({
     
     filtered <- filter_data(input)
     filter_gene <- filtered %>% filter(gene %in% input$gene_name)
-    #filtered_per_gene <- filtered %>% filter(gene == input$gene_name)
-    
+
     plot_per_gene <- generate_plot(filtered)
     return(plot_per_gene)
     
     
   })
   
-  
+  # Allows for downloading data as .csv file
   output$download_csv <- downloadHandler(
     filename = function() {
-      paste("data-", Sys.Date(), ".csv", sep = "")
+      paste("data-", Sys.Date(), ".csv", sep = "") # Naming file
     },
     contentType = "text/csv",
     content = function(file) {
@@ -97,16 +96,15 @@ server <- function(input, output, session) {
     }
   )
   
+  # Allows for downloading data as .xlsx file
   output$download_excel <- downloadHandler(
     filename = function() {
-      paste("data-", Sys.Date(), ".xlsx", sep = "")
+      paste("data-", Sys.Date(), ".xlsx", sep = "") # Naming file
     },
     content = function(file) {
-      # Get the filtered data
+      # Obtain filtered data and write it to path
       filtered <- filter_data(input)
-      
-      # Write the filtered data to an Excel file at the provided file path
-      write_xlsx(filtered, path = file)  # path is where the file is saved for download
+      write_xlsx(filtered, path = file)
     }
   )
   

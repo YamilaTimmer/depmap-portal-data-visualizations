@@ -17,6 +17,8 @@ ui <- fluidPage(
                  # input dropdown menu's for all list variables
                  selectizeInput('gene_name', label = "Select gene of interest", 
                      choices = NULL, multiple = TRUE),
+                 actionButton("info_btn", label = "", icon = icon("question-circle")),
+                 bsPopover(id = "info_btn", title = "Invoer uitleg", content = "Select gene(s) of which you want to visualise gene expression per cancer cell line"),
                  selectizeInput("onco_type", label = "Select type of cancer", 
                      choices = NULL, multiple = TRUE),
                  selectizeInput("sex", label = "Select sex", choices = NULL, 
@@ -32,10 +34,8 @@ ui <- fluidPage(
                                value = FALSE),
                  radioButtons("plot_type", label = "Select graph type",
                    choices = c("Barchart", "Boxplot")),
-                 submitButton(text = "Apply settings"),
-                 actionButton("info_btn", label = "", icon = icon("question-circle")),
-                 bsPopover(id = "info_btn", title = "Invoer uitleg", content = "Select gene(s) of which you want to visualise gene expression per cancer cell line"),
-                 
+                 submitButton(text = "Apply settings")
+                              
     ),
     
     mainPanel(
@@ -61,13 +61,8 @@ ui <- fluidPage(
                  )
                )
              ),
-  
     
-    
-    
-    
-    
-    
+    # tab n.3
     tabPanel("Visualize gene expression per cell line",
              sidebarLayout(
                sidebarPanel(
