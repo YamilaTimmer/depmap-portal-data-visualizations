@@ -101,11 +101,15 @@ In order to analyse the data, I first have to import the needed data files. The 
 In the following two code blocks I read in both .csv-files and save them as variables. I use read.csv to do so, because of the corresponding file type.
 ```{r}
 #model <- read.csv("/homes/ytimmer2/kwartaal6/applicatie/data/Model.csv")
-model <- read.csv("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\Model.csv", na.strings = "")
+#model <- read.csv("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\Model.csv", na.strings = "")
+
+model <- read.csv("C:\\Users\\yamil\\OneDrive - Hanzehogeschool Groningen\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\Model.csv", na.strings = "")
 ```
 
 ```{r}
-expression_db <- read.csv("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\OmicsExpressionProteinCodingGenesTPMLogp1.csv")
+#expression_db <- read.csv("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\OmicsExpressionProteinCodingGenesTPMLogp1.csv")
+
+expression_db <- read.csv("C:\\Users\\yamil\\OneDrive - Hanzehogeschool Groningen\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\OmicsExpressionProteinCodingGenesTPMLogp1.csv")
 ```
 
 ## Merging the datasets
@@ -374,5 +378,26 @@ ggplot(head(filtered), aes(CellLineName, expression)) +
 ```
 
 
+data in commons zetten (tidy en ruw)
+altijd kijken of wel klopt (bijv. bij merge)
+inline code gebruiken bijv number of rows is `r length(table)` en ook daadwerkelijk zeggen dat het klopt na het checken
+dyplyr::mutate(across(), functie) voor regex
+kolom identifier
+44:ncol(merged) bij kolomnamen
+terugkomen op barplor (is dit wat ik verwacht etc)
+code netter organiseren
+meer exploratie
+code reindent lines
+selectize input renamen en naar functions verplaatsen
 
+filter function(input, sex, age, race)
+print(filtering) om te checken of filter pas runt als er op submit wordt geklikt
+r oxygen format voor functie documentatie
+bestand opslaan als .r data (met functie: save(data, file = bla.Rdata)) en dan load(bla.Rdata)
+unittests voor een aantal van de functies (bijv. voor filter)
+exploratie knitten als html en in repo
+readme, gebruikershandleiding
+niks op x as, expressie op y-as en dan groupen op iets voor facet wrap
+boxplot rechtop
+heatmap met gen op yas celline xas kleur expressie en dan selecteren op kankersoort en daarna verder filteren
 

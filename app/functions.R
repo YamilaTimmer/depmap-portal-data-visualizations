@@ -1,6 +1,6 @@
 # Read data
-tidy_merged <- read.csv("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\tidy_merged.csv")
-
+#tidy_merged <- read.csv("C:\\Users\\yamil\\OneDrive - Hanzehogeschool Groningen\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\tidy_merged.csv")
+load("C:\\Users\\yamil\\OneDrive - Hanzehogeschool Groningen\\Bio-informatica\\Jaar 2\\2.1 applicatie\\tidy_merged.rdata")
 
 # Function for rendering barchart that shows gene expression per cell line (tab 1)
 generate_plot <- function(data){
