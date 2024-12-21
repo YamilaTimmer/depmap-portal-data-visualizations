@@ -100,19 +100,72 @@ In order to analyse the data, I first have to import the needed data files. The 
 
 In the following two code blocks I read in both .csv-files and save them as variables. I use read.csv to do so, because of the corresponding file type.
 ```{r}
-#model <- read.csv("/homes/ytimmer2/kwartaal6/applicatie/data/Model.csv")
-#model <- read.csv("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\Model.csv", na.strings = "")
-
-model <- read.csv("C:\\Users\\yamil\\OneDrive - Hanzehogeschool Groningen\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\Model.csv", na.strings = "")
+setwd("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\") # set working directory
+model <- read.csv("Model.csv", na.strings = "") 
+expression_db <- read.csv("OmicsExpressionProteinCodingGenesTPMLogp1.csv")
 ```
+
+
+## Making the data tidy
+
+### Preparing expression_db
+
+**26-11-2024**
+
+Before moving on with making the expression_db tidy, some minor changes will be made to the column names, in order to make future processes easier. First, the name of the 'X' column in expression_db is changed to 'ModelID', to make the merging process easier (see chapter: merging the datasets).
 
 ```{r}
-#expression_db <- read.csv("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\OmicsExpressionProteinCodingGenesTPMLogp1.csv")
-
-expression_db <- read.csv("C:\\Users\\yamil\\OneDrive - Hanzehogeschool Groningen\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\OmicsExpressionProteinCodingGenesTPMLogp1.csv")
+colnames(expression_db)[1] <- "ModelID" # Change column 'X' to 'ModelID'
 ```
 
+Second, using regex the gene column names will be changed. Reason being that the columnnames as of now don't lend themselves for an easy user-experience, due to the names being confusing. Example: '*TSPAN6..7105.*', instead of just 'TSPAN6'. All of the gene names follow a similar pattern to '..numbers.', with a regex statement this pattern can easily be removed, which results in more 'clean' names for all the genes. 
+
+I use the regex statement "`\\.\\.[0-9]+\\.", '\\.`". `\\.` stands for a singular '.' in the pattern, the backslashes are needed because '.' can also be interpreted as 'any symbol'. [0-9] indicates any number from 0-9 and the '+' indicates that at least 1 number is expected, but that it will still be recognized even if there is 2 or more numbers in a row. Using the sub()-function I substitute this regex statement with "", meaning it will fully be removed. Resulting in column names with cleaner versions of the gene names.
+
+```{r}
+# converts gene names of columns to simplified, cleaner version using regex statement
+for (col in 2:ncol(expression_db)){
+    colnames(expression_db)[col] <-  sub("\\.\\.[0-9]+\\.", "", colnames(expression_db)[col])
+}
+```
+
+`expression_db` is formatted in a way that it is not 'clean' data. Meaning it does not meet the Tidy requirements. The dataframe contains a seperate column for each gene and within each column it has the expression levels per row (meaning per tumor cell line). However the preferred, or Tidy way, is to have one column per variable, meaning that all gene columns should be combined into one 'gene' column and all expression columns should be combined into one 'expression' column. This can be achieved using the tidyr function `pivot_longer()`. The gene columns are selected by giving a vector which contains the column names. 
+
+The index 2:ncol(expression_db) selects all columns starting from the second column, which is where the gene columns start (column 1 contains the `ModelID`). The gene columns are converted to one gene column, named '*gene*' and all expression values are converted to a seperate column, named '*expression*'.
+
+```{r}
+tidy_expression <- expression_db %>% 
+  pivot_longer(
+    cols = 2:ncol(expression_db),
+    names_to = "gene",
+    values_to = "expression"
+  )
+```
+
+
+The metadata in the `model` dataframe is already formatted according the Tidy requirements, seeing as all columns have a unique variable.
+
+
 ## Merging the datasets
+
+**19-11-2024**
+
+I will not be merging the two datasets beforehand, seeing as that would add a lot of unnecessary extra metadata when converting the merged data to the long (tidy) format. Which will result in long loading times when launching the application. Hence I made it so that the two datasets will be merged after the filtering step, right before generating the plot. By doing this there will be a lot less data that has to be merged, because the data is filtered and is a lot less rows than the unfiltered data. The two datasets will be merged in the server script for the application, with the following code:
+```{r}
+merged <- merge(filtered_metadata[, c("ModelID", "StrippedCellLineName")], filtered_expr, by = "ModelID", all = FALSE)
+```
+
+The code merges the datasets `filtered_metadata` (which is the filtered result of model.Rdata, containing the metadata) and `filtered_expr` (which is the filtered result of tidy_expression which contains the gene expression data). The two datasets are merged on a corresponding factor, namely the ModelID. The ModelID is given in a column called `X` in `filtered_expr` and a column called `ModelID` in `filtered_metadata`.
+
+## Saving the data
+In order to load the data in the application, without having to go through all the steps of cleaning up the data again, I'm saving `model` and `tidy_expression` as R.data objects.
+
+```{r}
+save(model, file="C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\model.Rdata")
+save(tidy_expression, file="C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\tidy_expression.Rdata")
+
+```
+
 
 **19-11-2024**
 
@@ -127,7 +180,8 @@ expression_db_length <- length(rownames(expression_db))
 However `model` and `expression_db` both contain a column with a value that serves as indentification ID. `model` has a column `ModelID` and `expression_db` has a column `X`. Both contain the same identification number that is used to identify the cell line. So if I match the rows of both `model` and `expression_db` I can merge the columns of both tables. Using the merge()-function in base R, I give both tables and the columns on which they should be matched on and thereafter merged. `all = FALSE` tells the function to only keep the rows in which a match and merge has taken place, meaning that any of the rows from `model` or `expression_db` without a matching ID, will be removed. The rows that will be removed will only be rows from `model`, as not all cell lines from model have been used in expression_db. 
 
 ```{r}
-merged <- merge(model, expression_db, by.x = "ModelID", by.y = "X", all = FALSE)
+colnames(expression_db)[1] <- "ModelID"
+merged <- merge(model[, c("ModelID", "StrippedCellLineName")], expression_db, by = "ModelID", all = FALSE)
 ```
 
 To check whether the merging is succesful I check whether the number of rows in merged dataframe is equal to the number of rows in expression_db.
@@ -137,6 +191,10 @@ merged_length <- length(rownames(merged))
 
 merged_length == expression_db_length
 ```
+
+
+I will not be merging the two datasets, seeing as that would add a lot of unnecessary extra metadata when converting the merged data to the long (tidy) format. Instead I will be linking the two datasets together in the application itself.
+
 
 ## Converting data
 
@@ -148,8 +206,8 @@ I use the regex statement "`\\.\\.[0-9]+\\.", '\\.`' stands for a singular '.' i
 
 ```{r}
 # converts gene names of columns to simplified, cleaner version using regex statement
-for ( col in 44:ncol(merged)){
-    colnames(merged)[col] <-  sub("\\.\\.[0-9]+\\.", "", colnames(merged)[col])
+for ( col in 2:ncol(expression_db)){
+    colnames(expression_db)[col] <-  sub("\\.\\.[0-9]+\\.", "", colnames(expression_db)[col])
 }
 ```
 
@@ -384,7 +442,7 @@ inline code gebruiken bijv number of rows is `r length(table)` en ook daadwerkel
 dyplyr::mutate(across(), functie) voor regex
 kolom identifier
 44:ncol(merged) bij kolomnamen
-terugkomen op barplor (is dit wat ik verwacht etc)
+terugkomen op barplot (is dit wat ik verwacht etc)
 code netter organiseren
 meer exploratie
 code reindent lines
@@ -400,4 +458,4 @@ readme, gebruikershandleiding
 niks op x as, expressie op y-as en dan groupen op iets voor facet wrap
 boxplot rechtop
 heatmap met gen op yas celline xas kleur expressie en dan selecteren op kankersoort en daarna verder filteren
-
+uitleg bij elke functie

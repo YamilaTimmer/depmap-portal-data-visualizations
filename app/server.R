@@ -13,75 +13,133 @@ server <- function(input, output, session) {
   }
   
   # Updates all dropdown inputs using server-side selectize
-  selectize_input(ID = 'gene_name', choices = tidy_merged$gene,
-                  selected = sort(tidy_merged$gene[1]))
-  selectize_input(ID = 'onco_type', choices = sort(tidy_merged$OncotreePrimaryDisease), 
+  selectize_input(ID = 'gene_name', choices = tidy_expression$gene,
+                  selected = sort(tidy_expression$gene[1]))
+  selectize_input(ID = 'onco_type', choices = sort(model$OncotreePrimaryDisease), 
                   selected = "Acute Myeloid Leukemia")
-  selectize_input(ID = 'sex', choices = unique(tidy_merged$Sex), 
+  selectize_input(ID = 'sex', choices = unique(model$Sex), 
                   selected = c("Female", "Male"))
-  selectize_input(ID = "race", choices = tidy_merged$PatientRace, selected = 
+  selectize_input(ID = "race", choices = model$PatientRace, selected = 
                     c("caucasian", "asian", "black_or_african_american",
                       "african", "american_indian_or_native_american", 
                       "east_indian", "north_african"))
-  selectize_input(ID = "age_category", choices = tidy_merged$AgeCategory, selected = 
+  selectize_input(ID = "age_category", choices = model$AgeCategory, selected = 
                     c("Fetus", "Pediatric", "Adult"))
-  selectize_input(ID = 'cell_line', choices = unique(tidy_merged$StrippedCellLineName),
-                  selected = sort(tidy_merged$StrippedCellLineName[1]))
+  #selectize_input(ID = 'cell_line', choices = unique(model$StrippedCellLineName),
+                  #selected = sort(model$StrippedCellLineName[1]))
   
   # Filters data based on user input
-  filter_data <- function(input){
-    
-    filtered <- tidy_merged %>% 
+  # filter_data <- function(input){
+  #   
+  #   filtered_metadata <- model %>% 
+  #     filter(Sex %in% input$sex 
+  #            & PatientRace %in% input$race 
+  #            & AgeCategory %in% input$age_category 
+  #            & OncotreePrimaryDisease %in% input$onco_type)
+  #   
+  #   
+  #   # Uses the input of the slider to decide how many cell lines will be displayed
+  #   #filtered <- head(filtered, input$cell_line_number)
+  # 
+  #   # If checkbox is checked, expression values of 0 will not be displayed
+  #   #if(input$checkbox == TRUE) 
+  #   
+  #   #filtered <- filtered %>%
+  #       #filter(expression != 0)
+  #   
+  #   return(filtered_metadata)
+  #   
+  # }
+  # 
+  # 
+  # filter_expression <- function(filtered_metadata, input) {
+  #   filtered_expr <- tidy_expression %>%
+  #     filter(
+  #       X %in% filtered_metadata$ModelID,  # Match with ModelID or equivalent identifier
+  #       gene %in% input$gene_name          # Filter based on selected genes
+  #     )
+  #   
+  #   return(filtered_expr)
+  # }
+  # 
+  # # # Renders barchart that shows gene expression per cell line (tab 1)
+  # # output$plot_per_cell_line <- renderPlotly({
+  # #   
+  # #   filtered <- filter_data(tidy_merged, input)
+  # #   filtered_per_cell_line <- filtered %>% filter(StrippedCellLineName == 
+  # #                                                   input$cell_line)
+  # #   
+  # #   plot_per_cell_line <- generate_plot_per_cell_line(filtered_per_cell_line)
+  # #   return(plot_per_cell_line)
+  # #   
+  # #   
+  # # })
+  # 
+
+
+  # # Renders barchart that shows gene expression of one gene across multiple cell lines (tab 3)
+  # output$plot_per_gene <- renderPlotly({
+  #   
+  #   filter_data(input)
+  #   filter_expression(filtered_metadata, input)
+  # 
+  #   plot_per_gene <- generate_plot(filtered_expr)
+  #   return(plot_per_gene)
+  #   
+  #   
+  # })
+  # Function to filter metadata based on input values
+  filter_data <- function(input) {
+    filtered_metadata <- model %>% 
       filter(Sex %in% input$sex 
              & PatientRace %in% input$race 
              & AgeCategory %in% input$age_category 
-             & gene %in% input$gene_name 
              & OncotreePrimaryDisease %in% input$onco_type)
     
-    
-    # Uses the input of the slider to decide how many cell lines will be displayed
-    filtered <- head(filtered, input$cell_line_number)
-
-    # If checkbox is checked, expression values of 0 will not be displayed
-    if(input$checkbox == TRUE) 
-    
-    filtered <- filtered %>%
-        filter(expression != 0)
-    
-    return(filtered)
-    
+    return(filtered_metadata)
   }
   
-  # Renders barchart that shows gene expression per cell line (tab 1)
-  output$plot_per_cell_line <- renderPlotly({
+  # Function to filter expression data based on filtered metadata and input
+  filter_expression <- function(filtered_metadata, input) {
+    filtered_expr <- tidy_expression %>%
+      filter(
+        ModelID %in% filtered_metadata$ModelID,  # Match with ModelID or equivalent identifier
+        gene %in% input$gene_name          # Filter based on selected genes
+      )
     
-    filtered <- filter_data(tidy_merged, input)
-    filtered_per_cell_line <- filtered %>% filter(StrippedCellLineName == 
-                                                    input$cell_line)
+    return(filtered_expr)
+  }
+  
+  
+merge_data <- function(filtered_metadata, filtered_expr) {
     
-    plot_per_cell_line <- generate_plot_per_cell_line(filtered_per_cell_line)
-    return(plot_per_cell_line)
+  filtered_metadata <- filter_data(input)
+  filtered_expr <- filter_expression(filtered_metadata, input)
+  merged <- merge(filtered_metadata[, c("ModelID", "StrippedCellLineName")], filtered_expr, by = "ModelID", all = FALSE)
+  
+  
+    return(merged)
+  }
+  
+  
+  
+  # Render Plotly plot
+  output$plot_per_gene <- renderPlotly({
+    merged <- merge_data(filtered_metadata, filtered_expr)
     
+    # Step 3: Generate plot using the filtered expression data
+    plot_per_gene <- generate_plot(merged)
     
+    return(plot_per_gene)
   })
+  
   
   # Renders table with filtered data (tab 2)
   output$table <- renderDT({
-    filtered <- filter_data(input)
-    generate_table(filtered)
+    merged <- merge_data(filtered_metadata, filtered_expr)
+    generate_table(merged)
   })
   
-  # Renders barchart that shows gene expression of one gene across multiple cell lines (tab 3)
-  output$plot_per_gene <- renderPlotly({
-    
-    filtered <- filter_data(input)
-    filter_gene <- filtered %>% filter(gene %in% input$gene_name)
-
-    plot_per_gene <- generate_plot(filtered)
-    return(plot_per_gene)
-    
-    
-  })
   
   # Allows for downloading data as .csv file
   output$download_csv <- downloadHandler(
