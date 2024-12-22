@@ -2,6 +2,10 @@ source("functions.R")
 library(shiny)
 library(plotly)
 library(writexl)
+library(shinycssloaders) #loadingscreen
+library(shinyjqui) #resizable
+library(RColorBrewer)
+
 
 server <- function(input, output, session) {
   
@@ -11,6 +15,8 @@ server <- function(input, output, session) {
                          server = TRUE, 
                          selected = selected)
   }
+  
+  jqui_resizable(ui = "#plot_per_gene", operation = "enable")
   
   # Updates all dropdown inputs using server-side selectize
   selectize_input(ID = 'gene_name', choices = tidy_expression$gene,
@@ -25,8 +31,9 @@ server <- function(input, output, session) {
                       "east_indian", "north_african"))
   selectize_input(ID = "age_category", choices = model$AgeCategory, selected = 
                     c("Fetus", "Pediatric", "Adult"))
-  #selectize_input(ID = 'cell_line', choices = unique(model$StrippedCellLineName),
-                  #selected = sort(model$StrippedCellLineName[1]))
+  selectize_input(ID = 'cell_line_name', choices = unique(model$StrippedCellLineName), 
+                  selected = sort(model$StrippedCellLineName[1]))
+  
   
   # Filters data based on user input
   # filter_data <- function(input){
@@ -75,8 +82,8 @@ server <- function(input, output, session) {
   # #   
   # # })
   # 
-
-
+  
+  
   # # Renders barchart that shows gene expression of one gene across multiple cell lines (tab 3)
   # output$plot_per_gene <- renderPlotly({
   #   
@@ -88,6 +95,8 @@ server <- function(input, output, session) {
   #   
   #   
   # })
+  
+
   # Function to filter metadata based on input values
   filter_data <- function(input) {
     filtered_metadata <- model %>% 
@@ -111,13 +120,13 @@ server <- function(input, output, session) {
   }
   
   
-merge_data <- function(filtered_metadata, filtered_expr) {
+  merge_data <- function(filtered_metadata, filtered_expr) {
     
-  filtered_metadata <- filter_data(input)
-  filtered_expr <- filter_expression(filtered_metadata, input)
-  merged <- merge(filtered_metadata[, c("ModelID", "StrippedCellLineName")], filtered_expr, by = "ModelID", all = FALSE)
-  
-  
+    filtered_metadata <- filter_data(input)
+    filtered_expr <- filter_expression(filtered_metadata, input)
+    merged <- merge(filtered_metadata[, c("ModelID", "StrippedCellLineName", "Sex", "PatientRace", "AgeCategory")], filtered_expr, by = "ModelID", all = FALSE)
+    
+    
     return(merged)
   }
   
@@ -127,10 +136,39 @@ merge_data <- function(filtered_metadata, filtered_expr) {
   output$plot_per_gene <- renderPlotly({
     merged <- merge_data(filtered_metadata, filtered_expr)
     
+    if (input$plot_type == "Barchart") {
+      if (input$visualise_parameter == "Sex") {
+        
+        plot_per_gene <- generate_plot(merged, merged$Sex)
+       
+      }
+      
+      if (input$visualise_parameter == "Race") {
+        
+        plot_per_gene <- generate_plot(merged, merged$PatientRace)
+        
+      }
+      
+      if (input$visualise_parameter == "Age Category") {
+        
+        plot_per_gene <- generate_plot(merged, merged$AgeCategory)
+        
+      }
     # Step 3: Generate plot using the filtered expression data
-    plot_per_gene <- generate_plot(merged)
+      return(plot_per_gene)
+    }
     
-    return(plot_per_gene)
+
+    if (input$plot_type == "Heatmap") {
+      
+      heatmap_plot <- generate_heatmap(merged)
+      return(heatmap_plot)
+    }
+    
+    else {
+    boxplot_per_gene <- generate_box_plot(merged)
+    return(boxplot_per_gene)
+    }
   })
   
   
