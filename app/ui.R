@@ -4,6 +4,8 @@ library(DT)
 library(shinyBS)
 library(bsicons)
 library(bslib)
+library(shinyjs)
+
 ui <- fluidPage(
   titlePanel("DepMap visualiser"), #title
   
@@ -13,6 +15,7 @@ ui <- fluidPage(
     tabPanel("Visualize gene expression per gene",
              sidebarLayout(
                sidebarPanel(
+                 useShinyjs(),
                  h4("Select parameters:"),
                  # input dropdown menu's for all list variables
                  selectizeInput('gene_name', label = "Select gene of interest", 
@@ -37,8 +40,11 @@ ui <- fluidPage(
                                value = FALSE),
                  radioButtons("plot_type", label = "Select graph type",
                               choices = c("Barchart", "Boxplot", "Heatmap")),
-                 radioButtons("visualise_parameter", label = "Choose parameter to visualise",
-                              choices = c("Sex", "Age Category", "Race")),
+                 conditionalPanel(
+                   condition = "input.plot_type == 'Barchart'",
+                   radioButtons("visualise_parameter", label = "Choose parameter to visualise",
+                                choices = c("Sex", "Age Category", "Race"))
+                 ),
                  submitButton(text = "Apply settings")
                  
                ),

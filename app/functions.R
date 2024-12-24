@@ -54,7 +54,7 @@ generate_box_plot <- function(data){
 
 generate_heatmap <- function(data){
   if (length(unique(data$gene)) > 6) {
-  # Generate barplot for when multiple genes are chosen
+    # Generate barplot for when multiple genes are chosen
     ggplot(data = data, 
            aes(x = gene, 
                y = StrippedCellLineName, 

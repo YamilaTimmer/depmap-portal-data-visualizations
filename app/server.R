@@ -5,7 +5,7 @@ library(writexl)
 library(shinycssloaders) #loadingscreen
 library(shinyjqui) #resizable
 library(RColorBrewer)
-
+library(shinyjs)
 
 server <- function(input, output, session) {
   
@@ -33,6 +33,8 @@ server <- function(input, output, session) {
                     c("Fetus", "Pediatric", "Adult"))
   selectize_input(ID = 'cell_line_name', choices = unique(model$StrippedCellLineName), 
                   selected = sort(model$StrippedCellLineName[1]))
+  
+  
   
   
   # Filters data based on user input
@@ -96,7 +98,7 @@ server <- function(input, output, session) {
   #   
   # })
   
-
+  
   # Function to filter metadata based on input values
   filter_data <- function(input) {
     filtered_metadata <- model %>% 
@@ -140,7 +142,7 @@ server <- function(input, output, session) {
       if (input$visualise_parameter == "Sex") {
         
         plot_per_gene <- generate_plot(merged, merged$Sex)
-       
+        
       }
       
       if (input$visualise_parameter == "Race") {
@@ -154,11 +156,11 @@ server <- function(input, output, session) {
         plot_per_gene <- generate_plot(merged, merged$AgeCategory)
         
       }
-    # Step 3: Generate plot using the filtered expression data
+      # Step 3: Generate plot using the filtered expression data
       return(plot_per_gene)
     }
     
-
+    
     if (input$plot_type == "Heatmap") {
       
       heatmap_plot <- generate_heatmap(merged)
@@ -166,8 +168,8 @@ server <- function(input, output, session) {
     }
     
     else {
-    boxplot_per_gene <- generate_box_plot(merged)
-    return(boxplot_per_gene)
+      boxplot_per_gene <- generate_box_plot(merged)
+      return(boxplot_per_gene)
     }
   })
   

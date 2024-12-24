@@ -3,7 +3,7 @@ title: "DepMap portal data visualizations"
 author: "Yamila Timmer"
 date: '`r Sys.Date()`'
 output:
-  word_document:
+  html_document:
     toc: true
     toc_depth: '3'
     number_sections: true
@@ -11,6 +11,7 @@ output:
 lang: en
 bibliography: DepMap.bib
 ---
+
 
 ```{r}
 library(shiny)
@@ -40,7 +41,7 @@ library(naniar)
 
 In order to analyse the data, I first have to import the needed data files. The two data files I will download are:
 
-**Model.csv**
+### Model.csv
 - Contains metadata describing all cancer models which are referenced within the DepMap portal, but in this case specifically 'OmicsExpressionProteinCodingGenesTPMLogp1.csv'. The metadata is very extensive and descriptions of each of the metadata columns can be found in the table below. The descriptions are copied from the documentation of the DepMap database.
 
 | Column name | Description|
@@ -90,21 +91,43 @@ In order to analyse the data, I first have to import the needed data files. The 
 | **DateSharedIndbGaP** | Date data became available in dbGaP|
 
 
-**OmicsExpressionProteinCodingGenesTPMLogp1.csv**
+### OmicsExpressionProteinCodingGenesTPMLogp1.csv
 
 - Contains the gene expression transcripts per million (TPM) values of the protein coding genes for DepMap cell lines as described in `model.csv`. TPM is a way of normalization of transcript counts data in measuring gene expression levels. Normalization is necessary, because the number of reads will differ per cell line during the RNA sequencing step. TPM measures the amount of mapped reads per million mapped reads, which results in a display of ratio in mapped reads instead of an absolute number, thus normalizing the data. Figure 1 displays the corresponding formula that belongs to normalization using TPM [@Zhao2020].
 
-- Gene expression values are obtained through RNA-sequencing, using RSEM, which is a transcript counting tool. Specifically `unstranded mode` was used. Finally a log2 transformation was performed, which scales the data acoording to a log2 scale, reducing distance between values, and escpecially outliers. In this a pseudo-count of 1 was used, which results in the following formula: log2(TPM+1). The plus 1 as pseudo counts results in there being no negative values in the final data.
+- Gene expression values are obtained through RNA-sequencing, using RSEM, which is a transcript counting tool. Specifically `unstranded mode` was used. Finally a log2 transformation was performed, which scales the data according to a log2 scale, reducing distance between values, and escpecially outliers. In this a pseudo-count of 1 was used, which results in the following formula: log2(TPM+1). The plus 1 as pseudo counts results in there being no negative values in the final data.
 
 ![Formula for normalization using `transcripts per million` (TPM)](media/tpm.png)
 
+## Loading the data
+
 In the following two code blocks I read in both .csv-files and save them as variables. I use read.csv to do so, because of the corresponding file type.
+
 ```{r}
 setwd("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\") # set working directory
 model <- read.csv("Model.csv", na.strings = "") 
 expression_db <- read.csv("OmicsExpressionProteinCodingGenesTPMLogp1.csv")
 ```
 
+
+## First look at the datasets
+
+- Model.csv contains `r length(rownames(model))` rows and `r length(colnames(model))` columns.
+- OmicsExpressionProteinCodingGenesTPMLogp1.csv contains `r length(rownames(expression_db))` rows and `r length(colnames(expression_db))` columns.
+
+For a further look at the expression_db, the data will need to made tidy (see: chapter "Making the data tidy"). However for model.csv this is not the case, thus I will first be taking a look at this dataset. First I would like to take a look at the sex distribution of the patients that the cancer cell lines have been retrieved from, to see if there is a chance that there is any sort of bias here.
+
+```{r}
+ggplot(data = model, 
+       aes(x = Sex, 
+           fill = Sex)) +
+  geom_bar(stat = "count") + 
+  scale_fill_manual(values=c("pink", 
+                             "turquoise", 
+                             "orange")) 
+theme_minimal()
+```
+From the figure above can be seen that the male sex is dominant in this dataset (n = `r sum(model$Sex == "Male")`), there seems to be around 25% more biologically male patients than there are biologically female patients (n = `r sum(model$Sex == "Female")`). This sex bias could lead to problems, for example when, for example the user of the application notices that most cell lines in specific cancer types are mostly male. This could lead to the user interpreting this as that mostly men suffer from that type of cancer, but this could just be a coincidence as most of the patients were male. In order to prevent such scenarios from happening, I think it's important that I display metadata in the app, also showing the total number of patients per sex, but also per age category, race, etc. (all the filtering options). Furthermore it seems that for `r sum(model$Sex == "Unknown")` patients the sex is unknown, this could be due to errors during the research, where the sex did not get registered either by human mistakes or problems with the database/system, however there is still a value registered, which is 'unknown'. For a small number of patients (n = `r sum(model$Sex == "NA")`) no value got registered at all, this is shown as 'NA'.  
 
 ## Making the data tidy
 
@@ -114,26 +137,33 @@ expression_db <- read.csv("OmicsExpressionProteinCodingGenesTPMLogp1.csv")
 
 Before moving on with making the expression_db tidy, some minor changes will be made to the column names, in order to make future processes easier. First, the name of the 'X' column in expression_db is changed to 'ModelID', to make the merging process easier (see chapter: merging the datasets).
 
-```{r}
+```{r, eval = FALSE}
 colnames(expression_db)[1] <- "ModelID" # Change column 'X' to 'ModelID'
 ```
 
-Second, using regex the gene column names will be changed. Reason being that the columnnames as of now don't lend themselves for an easy user-experience, due to the names being confusing. Example: '*TSPAN6..7105.*', instead of just 'TSPAN6'. All of the gene names follow a similar pattern to '..numbers.', with a regex statement this pattern can easily be removed, which results in more 'clean' names for all the genes. 
+**19-11-2024**
+
+Second, using regex I will change the gene column names. Reason being that the column names as of now don't lend themselves for an easy user-experience, due to the names being confusing. I believe that having just the gene name itself is enough for the user of the application to achieve what he or she wants. 
+
+An example of the gene column name: '*TSPAN6..7105.*', instead of just 'TSPAN6'. All of the gene names follow a similar pattern to '..numbers.', with a regex statement this pattern can easily be removed, which results in more 'clean' names for all the genes. 
 
 I use the regex statement "`\\.\\.[0-9]+\\.", '\\.`". `\\.` stands for a singular '.' in the pattern, the backslashes are needed because '.' can also be interpreted as 'any symbol'. [0-9] indicates any number from 0-9 and the '+' indicates that at least 1 number is expected, but that it will still be recognized even if there is 2 or more numbers in a row. Using the sub()-function I substitute this regex statement with "", meaning it will fully be removed. Resulting in column names with cleaner versions of the gene names.
 
-```{r}
+```{r, eval = FALSE}
 # converts gene names of columns to simplified, cleaner version using regex statement
 for (col in 2:ncol(expression_db)){
     colnames(expression_db)[col] <-  sub("\\.\\.[0-9]+\\.", "", colnames(expression_db)[col])
 }
 ```
 
+
+**26-11-2024**
+
 `expression_db` is formatted in a way that it is not 'clean' data. Meaning it does not meet the Tidy requirements. The dataframe contains a seperate column for each gene and within each column it has the expression levels per row (meaning per tumor cell line). However the preferred, or Tidy way, is to have one column per variable, meaning that all gene columns should be combined into one 'gene' column and all expression columns should be combined into one 'expression' column. This can be achieved using the tidyr function `pivot_longer()`. The gene columns are selected by giving a vector which contains the column names. 
 
 The index 2:ncol(expression_db) selects all columns starting from the second column, which is where the gene columns start (column 1 contains the `ModelID`). The gene columns are converted to one gene column, named '*gene*' and all expression values are converted to a seperate column, named '*expression*'.
 
-```{r}
+```{r, eval = FALSE}
 tidy_expression <- expression_db %>% 
   pivot_longer(
     cols = 2:ncol(expression_db),
@@ -143,83 +173,40 @@ tidy_expression <- expression_db %>%
 ```
 
 
-The metadata in the `model` dataframe is already formatted according the Tidy requirements, seeing as all columns have a unique variable.
+The metadata in the `model` dataframe is already formatted according the Tidy requirements, seeing as all columns have a unique variable, so no changes will have to be made to this dataframe.
 
+## Look at expression
+
+Now that the expression data is tidy, we can now see what this data looks like. I will be visualising this using
+
+```{r}
+
+prcomp(expression_data, scale = TRUE)
+pca_df <- as.data.frame(pca$x)
+ggplot(pca_df, aes(x = PC1, y = PC2, color = cell_line)) + geom_point()
+
+```
 
 ## Merging the datasets
 
 **19-11-2024**
 
 I will not be merging the two datasets beforehand, seeing as that would add a lot of unnecessary extra metadata when converting the merged data to the long (tidy) format. Which will result in long loading times when launching the application. Hence I made it so that the two datasets will be merged after the filtering step, right before generating the plot. By doing this there will be a lot less data that has to be merged, because the data is filtered and is a lot less rows than the unfiltered data. The two datasets will be merged in the server script for the application, with the following code:
-```{r}
+```{r, eval = FALSE}
 merged <- merge(filtered_metadata[, c("ModelID", "StrippedCellLineName")], filtered_expr, by = "ModelID", all = FALSE)
 ```
 
-The code merges the datasets `filtered_metadata` (which is the filtered result of model.Rdata, containing the metadata) and `filtered_expr` (which is the filtered result of tidy_expression which contains the gene expression data). The two datasets are merged on a corresponding factor, namely the ModelID. The ModelID is given in a column called `X` in `filtered_expr` and a column called `ModelID` in `filtered_metadata`.
+The code merges the datasets `filtered_metadata` (which is the filtered result of model.Rdata, containing the metadata) and `filtered_expr` (which is the filtered result of tidy_expression which contains the gene expression data). The two datasets are merged on a corresponding factor, namely the ModelID. The ModelID is given in a column called `X` in `filtered_expr` and a column called `ModelID` in `filtered_metadata`. Using the merge()-function in base R, I give both tables and the columns on which they should be matched on and thereafter merged. 
+
+`all = FALSE` tells the function to only keep the rows in which a match and merge has taken place, meaning that any of the rows from `model` or `expression_db` without a matching ID, will be removed. The rows that will be removed will only be rows from `model`, as not all cell lines from model have been used in expression_db. 
 
 ## Saving the data
 In order to load the data in the application, without having to go through all the steps of cleaning up the data again, I'm saving `model` and `tidy_expression` as R.data objects.
 
-```{r}
+```{r, eval = FALSE}
 save(model, file="C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\model.Rdata")
 save(tidy_expression, file="C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\tidy_expression.Rdata")
 
-```
-
-
-**19-11-2024**
-
-Next I will merge the datasets on a corresponding factor. `Model.csv` contains the general info about the tumor cell lines, such as age and sex of the patient and the specific type of cancer the cell line is derived from. `OmicsExpressionProteinCodingGenesTPMLogp1.csv` contains these same models, however not all of them. As seen by running the code block below, model has 1959 rows and expression_db has 1517 rows. Thus an extra step is needed to merge the columns from these tables. As we cannot just merge columns of 1517 rows to columns of 1959 rows, as they will not be aligned. 
-
-```{r}
-model_length <- length(rownames(model))
-expression_db_length <- length(rownames(expression_db))
-
-```
-
-However `model` and `expression_db` both contain a column with a value that serves as indentification ID. `model` has a column `ModelID` and `expression_db` has a column `X`. Both contain the same identification number that is used to identify the cell line. So if I match the rows of both `model` and `expression_db` I can merge the columns of both tables. Using the merge()-function in base R, I give both tables and the columns on which they should be matched on and thereafter merged. `all = FALSE` tells the function to only keep the rows in which a match and merge has taken place, meaning that any of the rows from `model` or `expression_db` without a matching ID, will be removed. The rows that will be removed will only be rows from `model`, as not all cell lines from model have been used in expression_db. 
-
-```{r}
-colnames(expression_db)[1] <- "ModelID"
-merged <- merge(model[, c("ModelID", "StrippedCellLineName")], expression_db, by = "ModelID", all = FALSE)
-```
-
-To check whether the merging is succesful I check whether the number of rows in merged dataframe is equal to the number of rows in expression_db.
-
-```{r}
-merged_length <- length(rownames(merged))
-
-merged_length == expression_db_length
-```
-
-
-I will not be merging the two datasets, seeing as that would add a lot of unnecessary extra metadata when converting the merged data to the long (tidy) format. Instead I will be linking the two datasets together in the application itself.
-
-
-## Converting data
-
-**19-11-2024**
-
-In the merged dataframe, the columnnames, from index 44-end, represent the gene names. The columns itself show the expression levels per gene. However the columnnames as of now don't lend themselves for an easy user-experience, due to the names being confusing. Example: '*TSPAN6..7105.*', instead of just 'TSPAN6'. All of the gene names follow a similar pattern to '..numbers.', with a regex statement this pattern can easily be removed, which results in more 'clean' names for all the genes. 
-
-I use the regex statement "`\\.\\.[0-9]+\\.", '\\.`' stands for a singular '.' in the pattern, the backslashes are needed because '.' can also be interpreted as 'any symbol'. [0-9] indicates any number from 0-9 and the '+' indicates that at least 1 number is expected, but that it will still be recognized even if there is 2 or more numbers in a row. Using the sub()-function I substitute this regex statement with "", meaning it will fully be removed. Resulting in column names with cleaner versions of the gene names.
-
-```{r}
-# converts gene names of columns to simplified, cleaner version using regex statement
-for ( col in 2:ncol(expression_db)){
-    colnames(expression_db)[col] <-  sub("\\.\\.[0-9]+\\.", "", colnames(expression_db)[col])
-}
-```
-
-## Making the data tidy
-
-**26-11-2024**
-The merged data (consisting of the metadata and the expression data) is not 'clean' data. Meaning it does not meet the Tidy requirements. The merged data contains a seperate column for each gene and within each column it has the expression levels per row (meaning per tumor cell line). However the preferred, or Tidy way, is to have one column per variable, meaning that all gene columns should be combined into one 'gene' column and all expression columns should be combined into one 'expression' column. This can be achieved using the tidyr function `pivot_longer()`. The gene columns are selected by giving a vector which contains the column names. The index 44:ncol(merged) selects all columns starting from column 44, which is where the gene columns start. The gene columns are converted to one gene column, named '*gene*' and all expression values are converted to a seperate column, named '*expression*'.
-
-```{r}
-tidy_merged <- merged %>% pivot_longer(cols = c(names(merged[44:ncol(merged)])),
-                    names_to = 'gene',
-                    values_to = 'expression') 
 ```
 
 
@@ -227,10 +214,10 @@ tidy_merged <- merged %>% pivot_longer(cols = c(names(merged[44:ncol(merged)])),
 
 **27-11-2024**
 
-The figure below is generated using the naniar package, which offers tools to visualise missing data. It can easily be told from the figure below that (almost) all values are missing in the `TissueOrigin`, `StagingSystem`, `PatientTumorGrade` and `DataSharedIndbGaP` columns. Even though the figure displays the amount of missing values as 100%, it cannot be certainly said that ALL values are missing, because of the size of the dataframe, so even if some rows do have these values, it will not show up in the figure. `WTSIMasterCellID` and `COSMICID` seem to have missing values in around half of the rows (a bit over 50%). And `Age` seems to be missing values in approximately 18.75% of the rows. All other variables seem to have a very low number of missing values, which makes these variables a good option as metadata to use for filtering in the application by the user. However it seems there are a lot more missing values, given as "", instead of 'NA'. These need to be converted properly, so I have added '`na.strings=""`' to the read.csv statement for model.csv. Now it seems clear that the amount of missing data is a lot larger than I first thought, as can be seen in figure. Other, not yet named columns that also seem to be missing (almost) all data are: `PatientTreatmentType`, `PatientTreatmentDetails`,`ModelDerivationMaterial`, `HCMIID`, `PatientTreatmentResponse`, `Stage`, `EngineeredModel`, `PatientTreatmentStatus`, `PublicComments`, `PatientMolecularSubtype`, `LegacyMolecularSubtype`. The following columns seem to be missing around 25-60% of the data: `PatientRace`, `LegacySubSubtype`, `SangerModelID`, `CatalogNumber`. Based on this data it will have to be carefully evaluated which metadata columns are suitable for allowing the user to filter the data.
+The figure below is generated using the Naniar package, which offers tools to visualize missing data. It can easily be told from the figure below that (almost) all values are missing in the `TissueOrigin`, `StagingSystem`, `PatientTumorGrade` and `DataSharedIndbGaP` columns. Even though the figure displays the amount of missing values as 100%, it cannot be certainly said that ALL values are missing, because of the size of the data frame, so even if some rows do have these values, it will not show up in the figure. `WTSIMasterCellID` and `COSMICID` seem to have missing values in around half of the rows (a bit over 50%). And `Age` seems to be missing values in approximately 18.75% of the rows. All other variables seem to have a very low number of missing values, which makes these variables a good option as metadata to use for filtering in the application by the user. However it seems there are a lot more missing values, given as "", instead of 'NA'. These need to be converted properly, so I have added '`na.strings=""`' to the read.csv statement for model.csv. Now it seems clear that the amount of missing data is a lot larger than I first thought, as can be seen in figure. Other, not yet named columns that also seem to be missing (almost) all data are: `PatientTreatmentType`, `PatientTreatmentDetails`,`ModelDerivationMaterial`, `HCMIID`, `PatientTreatmentResponse`, `Stage`, `EngineeredModel`, `PatientTreatmentStatus`, `PublicComments`, `PatientMolecularSubtype`, `LegacyMolecularSubtype`. The following columns seem to be missing around 25-60% of the data: `PatientRace`, `LegacySubSubtype`, `SangerModelID`, `CatalogNumber`. Based on this data it will have to be carefully evaluated which metadata columns are suitable for allowing the user to filter the data.
 
-```{r}
-gg_miss_var(tidy_merged, show_pct = TRUE) + labs(y = "Missing values (%)")
+```{r, eval = FALSE}
+gg_miss_var(model, show_pct = TRUE) + labs(y = "Missing values (%)")
 ```
 
 # Visualization
@@ -238,17 +225,20 @@ gg_miss_var(tidy_merged, show_pct = TRUE) + labs(y = "Missing values (%)")
 
 **20-11-2024**
 
-A simple, yet efficient way of visualising expression values and cell lines can be done using a barplot. For this I am using the ggplot library, with the geom_bar function. For the data I give the merged dataframe, with the gene (in this case, TSPAN6) as x-axis and the tumor cell line name as y-axis. This results in expression levels being shown horizontally (x-axis) and corresponding cell line names vertically (y-axis). I ordered the expression levels from high to low, seeing as in cancer therapy one might be looking for highly overexpressed genes, in order to develop a treatment that could interfere on the expression of that gene. I sorted them using the reorder()-function, by first giving the `StrippedCellLineName` column, and then telling it to sort it based off of the expression values in the gene (TSPAN6). 
+A simple, yet efficient way of visualizing expression values and cell lines can be done using a bar plot. For this I am using the ggplot library, with the geom_bar function. For the data I give the merged data frame, with the gene (in this case, TSPAN6) as x-axis and the tumor cell line name as y-axis. This results in expression levels being shown horizontally (x-axis) and corresponding cell line names vertically (y-axis). I ordered the expression levels from high to low, seeing as in cancer therapy one might be looking for highly over expressed genes, in order to develop a treatment that could interfere on the expression of that gene. I sorted them using the reorder()-function, by first giving the `StrippedCellLineName` column, and then telling it to sort it based off of the expression values in the gene (TSPAN6). 
 
-However one might also be interested in genes with a very low expression, because this gene could also possibly be involved in the development of cancer in that cell line. The gene can for example be a tumor suppressor gene, which can also possibly be treated if a medication would be developed that could increase the expression of that gene again. I am planning on allowing the user to sort from either high-low or low-high for gene expression levels in the application. Sorting from low-high can be done by adding a '-' in the following line: `y=reorder(StrippedCellLineName,-TSPAN6)`. The code below is just a first visualisation, later I will add onto the code and write it as a function so it can easily be used with different parameters, which will be needed for the application.
+However one might also be interested in genes with a very low expression, because this gene could also possibly be involved in the development of cancer in that cell line. The gene can for example be a tumor suppressor gene, which can also possibly be treated if a medication would be developed that could increase the expression of that gene again. I am planning on allowing the user to sort from either high-low or low-high for gene expression levels in the application. Sorting from low-high can be done by adding a '-' in the following line: `y=reorder(StrippedCellLineName,-TSPAN6)`. The code below is just a first visualization, later I will add onto the code and write it as a function so it can easily be used with different parameters, which will be needed for the application.
 
-```{r}
-# generates horizontal barplot of chosen gene and cell lines that express this gene 
-gene_expr_cell_line <- ggplot(data=head(merged), aes(x=TSPAN6,
-                                                     y=reorder
-                                                     (StrippedCellLineName,TSPAN6)))+ geom_bar(stat="identity", fill = 'blue') + ylab("Tumor Cell Line") + xlab("Expression level (log2 TPM)") + labs(subtitle = "TSPAN6") + theme_minimal()
-
-gene_expr_cell_line
+```{r, eval = FALSE}
+# Generates horizontal barplot of chosen gene and cell lines that express this gene 
+ggplot(data = head(merged), aes(x = TSPAN6,
+                              y = reorder
+                              (StrippedCellLineName,TSPAN6))) + 
+  geom_bar(stat = "identity", fill = 'blue') + 
+  ylab("Tumor Cell Line") + 
+  xlab("Expression level (log2 TPM)") + 
+  labs(subtitle = "TSPAN6") + 
+  theme_minimal()
 
 ```
 
@@ -257,39 +247,44 @@ As of now I am only using the head of the data, as there are a lot of tumor cell
 
 **21-11-2024**
 
-```{r}
-# generates horizontal barplot of chosen gene and cell lines that express this gene 
-cell_line_barplot <- function(dataset, aes.x, aes.y) {
-  return(ggplot(data=dataset, aes(x= aes.x, y= aes.y)) +
-           geom_bar(stat="identity", fill = 'blue') + ylab("Tumor Cell Line") + xlab("Expression level (log2 TPM)") +
-           theme_minimal())
-}
+To further filter on specific traits like age category, sex or race, simple statements like below can be used. The variables after the operators (== and %in%) will be replaced by `input$Sex`, `input$PatientRace` and `input$AgeCategory`. Which contains the variables that the user has filtered on in the application.
+
+```{r, eval = FALSE}
+filtered_metadata <- model %>% 
+  filter(Sex == "Female" 
+         & PatientRace %in% c("caucasian", "asian") 
+         & AgeCategory %in% c("Pediatric", "Adult")
+         )
 ```
 
-To further filter on specific traits like age category, sex or race, simple statements like this can be used:
-```{r}
-filtered <- subset(tidy_merged, StrippedCellLineName %in% c('U2OS', 'RD'), gene %in% c('TSPAN6', 'TNMD', 'DPM1'))
-```
-
-The new cell_line_barplot function can now be called as shown in the code below:
-```{r}
-# Generates barplot with cell_line_barplot function, using user given parameters
-cell_line_barplot(dataset = filtered, aes.x = filtered$TSPAN6, aes.y = reorder(filtered$StrippedCellLineName, filtered$TSPAN6))
-```
 
 ## Boxplot
 expressie van 1 celline
 
-```{r}
+```{r, eval = FALSE}
 # Generates barplot with cell_line_barplot function, using user given parameters
-cell_line_boxplot <- ggplot(head(tidy_merged), 
-                            aes(x = StrippedCellLineName, y = expression)) +
-  geom_boxplot() +
-  labs(x = "TSPAN6 Expression", y = "Cell Line Name") 
-cell_line_boxplot
+    ggplot(data = data,
+           aes(x = gene, 
+               y = expression)) +
+      geom_boxplot() +
+      labs(x = "Gene", y = "Gene Expression") + 
+      theme_minimal()
 ```
 
+## Heatmap
 
+```{r}
+    ggplot(data = data, 
+           aes(x = gene, 
+               y = StrippedCellLineName, 
+               fill= expression)) +
+      geom_tile() + 
+      ylab("Tumor Cell Line") +
+      xlab("Gene") +
+      labs(fill = "Expression level(log2 TPM)") +
+      theme_minimal() + scale_fill_distiller(palette = "RdPu")
+
+```
 
 ## Other ways of visualising the expression data
 
@@ -297,13 +292,13 @@ cell_line_boxplot
 
 Another way to visualise the expression data, would be to let the user choose one cell line, and by using that show the expression in chosen genes. This is opposite of the visualisations shown before, where the user chooses a gene and it displays the cell lines. First the dataset needs to be filtered on one specific cell line (which will be chosen by the user in the application). 
 
-```{r}
+```{r, eval = FALSE}
 filtered <- subset(tidy_merged, StrippedCellLineName == "NIHOVCAR3")
 
 ```
 
 Next it can be visualised using the code below, which is very similar to the previous plot that I made for the visualisation of the expression per gene in each cell line. 
-```{r}
+```{r, eval = FALSE}
 cell_line_gene_expr <- ggplot(data=head(tidy_merged), aes(x=gene,
                                                      y=expression))+ geom_bar(stat="identity", fill = 'blue') + coord_flip() + xlab("Gene") + ylab("Expression level (log2 TPM)") + labs(subtitle = "NIHOVCAR3") + theme_minimal()
 
@@ -365,14 +360,14 @@ ui <- fluidPage(
 ```
 Next I add the actual elements that the user can interact with, which are `selectInput` objects. I do this for each of the parameters that I want the user to be able to change. Below is an example for the selectInput for the cancer type. By adding selected = TRUE, the aplpication will automatically select the option that is at the top of the list. By adding the sort()-function, the choices will be displayed in alphabetical order from A-Z.
 
-```{r}
+```{r, eval = FALSE}
 selectInput("onco_type", label = "Select type of cancer", selected = TRUE, choices =
                     sort(merged$OncotreePrimaryDisease))
 ```
 
 I also add a `submit-button`, so that when I add the plot, the application won't try to constantly refresh the plot every time the user selects an option, because there is 5 different parameters which means that if the user wants to change those 5 parameters to generate 1 plot, the application will refresh the plot 5 times in the meantime. By adding the submit button the user can decide when they want to refresh and show a plot with the newly adjusted parameters.
 
-```{r}
+```{r, eval = FALSE}
 submitButton(text = "Apply settings")
 ```
 
@@ -392,13 +387,13 @@ Today I have adjusted the ggplot code, to make the expression values be displaye
 
 The full aes will then be as following:
 
-```{r}
+```{r, eval = FALSE}
 ggplot(
   data = filtered, aes(x = !!sym(input$gene_name), y = reorder(StrippedCellLineName,
                                                               !!sym(input$gene_name))))
 ```
 
-```{r}
+```{r, eval = FALSE}
 generate_table <- function(data, input){
     tidy_merged %>% select(matches("StrippedCellLineName"), matches("gene"),
                            matches("expression"))
@@ -407,11 +402,11 @@ generate_table <- function(data, input){
 
 ```
 
-```{r}
+```{r, eval = FALSE}
 tidy_merged %>% select(matches("StrippedCellLineName"), matches("gene"), matches("expression"))
 ```
 
-```{r}
+```{r, eval = FALSE}
 base <- ggplot(mpg2, aes(displ, hwy)) + 
   geom_blank() + 
   xlab(NULL) + 
@@ -422,14 +417,14 @@ base + facet_wrap(~class, ncol = 3, as.table = FALSE)
 
 ```
 
-```{r}
+```{r, eval = FALSE}
 filtered <- tidy_merged %>% filter(OncotreePrimaryDisease == "Ovarian Epithelial Tumor" 
                                    & Sex == "Female"
                                    & gene == "A1BG" | gene == "TSPAN6" )
 ```
 
 facet_wrap to compare multiple genes, will probably be maximum of 10 in the application
-```{r}
+```{r, eval = FALSE}
 ggplot(head(filtered), aes(CellLineName, expression)) +
   geom_bar(stat = "identity", fill = 'blue') +
   geom_blank() + facet_wrap(~ gene)
@@ -446,7 +441,7 @@ terugkomen op barplot (is dit wat ik verwacht etc)
 code netter organiseren
 meer exploratie
 code reindent lines
-selectize input renamen en naar functions verplaatsen
+selectize input renamen en naar functions verplaatsen (done)
 
 filter function(input, sex, age, race)
 print(filtering) om te checken of filter pas runt als er op submit wordt geklikt
