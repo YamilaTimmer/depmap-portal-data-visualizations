@@ -6,104 +6,102 @@ library(bsicons)
 library(bslib)
 library(shinyjs)
 
-ui <- fluidPage(
-  titlePanel("DepMap visualiser"), #title
+
+
+ui <- page_fillable(
   
-  tabsetPanel(
+  page_navbar(
     
-    # tab n.1
-    tabPanel("Visualize gene expression per gene",
-             sidebarLayout(
-               sidebarPanel(
-                 useShinyjs(),
-                 h4("Select parameters:"),
-                 # input dropdown menu's for all list variables
-                 selectizeInput('gene_name', label = "Select gene of interest", 
-                                choices = NULL, multiple = TRUE),
-                 bslib::input_dark_mode(id="theme"),
-                 selectizeInput('cell_line_name', label = "Select cell line of interest", 
-                                choices = NULL, multiple = TRUE),
-                 actionButton("info_btn", label = "", icon = icon("question-circle")),
-                 bsPopover(id = "info_btn", title = "Invoer uitleg", content = "Select gene(s) of which you want to visualise gene expression per cancer cell line"),
-                 selectizeInput("onco_type", label = "Select type of cancer", 
-                                choices = NULL, multiple = TRUE),
-                 selectizeInput("sex", label = "Select sex", choices = NULL, 
-                                multiple = TRUE),
-                 selectizeInput("race", label = "Select race", choices = NULL,
-                                multiple = TRUE),
-                 selectizeInput("age_category", label = "Select age category", 
-                                choices = NULL, multiple = TRUE),
-                 sliderInput("cell_line_number", "Number of cell lines displayed:",
-                             min = 1, max = 100,
-                             value = 15, step = 1),
-                 checkboxInput("checkbox", label = "Hide cell lines where gene expression = 0?", 
-                               value = FALSE),
-                 radioButtons("plot_type", label = "Select graph type",
-                              choices = c("Barchart", "Boxplot", "Heatmap")),
-                 conditionalPanel(
-                   condition = "input.plot_type == 'Barchart'",
-                   radioButtons("visualise_parameter", label = "Choose parameter to visualise",
-                                choices = c("Sex", "Age Category", "Race"))
-                 ),
-                 submitButton(text = "Apply settings")
-                 
-               ),
-               
-               mainPanel(
-                 
-                 # Output for generated plot(s)
-                 shinycssloaders::withSpinner( # loading screen
-                   plotlyOutput("plot_per_gene", width = "auto", height = "auto", inline = TRUE)
-                 ),
-               )
-             )
-    ),
-    
-    # tab n.2
-    tabPanel(
-      "Table",
-      fluidRow(
-        column(width = 2,
-               h4("Download data:"),
-               downloadButton("download_csv", "Download .csv"),
-               downloadButton("download_excel", "Download .xlsx")
-        ),
-        column(width = 10,
-               DT::DTOutput("table"))
-        
-      )
-    ),
-    
-    # tab n.3
-    tabPanel("Visualize gene expression per cell line",
-             sidebarLayout(
-               sidebarPanel(
-                 selectizeInput('cell_line', 
-                                label = "Select cell line of interest", 
-                                choices = NULL),
-                 selectizeInput("onco_type", label = "Select type of cancer", 
-                                choices = NULL, multiple = TRUE),
-                 selectizeInput("sex", label = "Select sex", choices = NULL, 
-                                multiple = TRUE),
-                 selectizeInput("race", label = "Select race", choices = NULL,
-                                multiple = TRUE),
-                 selectizeInput("age_category", label = "Select age category", 
-                                choices = NULL, multiple = TRUE),
-                 sliderInput("cell_line_number", "Number of genes displayed:",
-                             min = 1, max = 100,
-                             value = 15, step = 1),
-                 checkboxInput("checkbox", 
-                               label = "Hide genes where expression = 0?", 
-                               value =
-                                 FALSE),
-                 submitButton(text = "Apply settings"),
-               ),
-               
-               mainPanel(
-                 plotlyOutput("plot_per_cell_line"),
-               )
-             )
+    title = "DepMap Visualiser", sidebar = sidebar(
+      
+      h4("Select parameters:"),
+      # input dropdown menus for all list variables
+      selectizeInput('gene_name', label = "Select gene of interest", 
+                     choices = NULL, multiple = TRUE),
+      selectizeInput('cell_line_name', label = "Select cell line of interest", 
+                     choices = NULL, multiple = TRUE),
+      selectizeInput("onco_type", label = "Select type of cancer", 
+                     choices = NULL, multiple = TRUE),
+      selectizeInput("sex", label = "Select sex", choices = NULL, 
+                     multiple = TRUE),
+      selectizeInput("race", label = "Select race", choices = NULL,
+                     multiple = TRUE),
+      selectizeInput("age_category", label = "Select age category", 
+                     choices = NULL, multiple = TRUE),
+      sliderInput("cell_line_number", "Number of cell lines displayed:",
+                  min = 1, max = 100,
+                  value = 15, step = 1),
+      checkboxInput("checkbox", label = "Hide cell lines where gene expression = 0?", 
+                    value = FALSE),
+      
+      submitButton(text = "Apply settings")
     )
+    ,
     
+    
+    # Output for generated plot(s)
+    layout_columns(
+      card(full_screen = TRUE, 
+           navset_card_tab(
+             useShinyjs(),
+             nav_panel("Bar plot", 
+                       layout_sidebar(
+                         sidebar = sidebar(
+                           radioButtons("barplot_parameter", 
+                                        label = "Choose parameter to visualise",
+                                        choices = c("Sex", "Age Category", "Race", "Cancer Type"), 
+                                        selected = "Sex",
+                           ),
+                           submitButton(text = "Apply settings")
+                         ),
+                         shinycssloaders::withSpinner(jqui_resizable
+                                                      (plotlyOutput("barplot_per_gene")))
+                       )
+             ),
+             
+             
+             nav_panel("Boxplot", 
+                       layout_sidebar(
+                         sidebar = sidebar(
+                           checkboxInput("outliers_checkbox", 
+                                         label = "Show outliers?", 
+                                         value = TRUE),
+                           submitButton(text = "Apply settings")
+                         ),
+                         shinycssloaders::withSpinner((jqui_resizable(plotlyOutput("boxplot_per_gene"))))
+                       )
+             ),
+             
+             nav_panel("Heatmap", 
+                       layout_sidebar(
+                         sidebar = sidebar(
+                           submitButton(text = "Apply settings")),
+                         shinycssloaders::withSpinner((jqui_resizable(plotlyOutput("heatmap_per_gene"))))
+                       ),
+             )
+           )
+      ),
+      
+      
+      
+      card( full_screen = TRUE, 
+            navset_card_tab
+            (useShinyjs(),
+              nav_panel("Filtered Data",
+                        shinycssloaders::withSpinner(DT::DTOutput("filtered_table")), 
+                        downloadButton("download_csv", "Download .csv"),
+                        downloadButton("download_excel", "Download .xlsx")
+              ),
+              nav_panel("Selected Data",
+                        DT::DTOutput("selected_table")
+              )
+            )
+      ),
+      col_widths = c(6, 6)),
+    
+    nav_item(
+      input_dark_mode(id = "dark_mode", mode = "light")
+    )
   )
 )
+
