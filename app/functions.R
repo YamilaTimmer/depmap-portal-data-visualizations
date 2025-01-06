@@ -22,7 +22,7 @@ generate_barplot <- function(data, fill, fill_label){
   
   if (length(unique(data$gene)) > 1) {
     ggplot(data = data, 
-           aes(x = expression, 
+           aes(x = expression,
                y = StrippedCellLineName,
                fill = fill)) +
       geom_bar(stat = "identity") + 
@@ -33,7 +33,7 @@ generate_barplot <- function(data, fill, fill_label){
       facet_wrap( ~ gene) # To display multiple bar plots of each of the chosen genes
   }
   
-  # Generate barplot for when only one gene is chosen
+  # Generate barplot for when only one gene is chosen, here the cell lines will be sorted on expression levels
   
   else {
     ggplot(data = data, 
@@ -61,34 +61,19 @@ generate_barplot <- function(data, fill, fill_label){
 #' @examples
 #' generate_box_plot(merged)
 
-generate_box_plot <- function(data){
+generate_box_plot <- function(data, text_angle){
   
-  # Generate boxplot for when multiple genes are chosen
+  # Generates boxplot
   
-  if (length(unique(data$gene)) > 1) {
-    ggplot(data = data,
-           aes(x = gene, 
-               y = expression)) +
-      geom_boxplot() +
-      labs(x = "Gene", 
-           y = "Expression level(log2 TPM)") + 
-      theme_minimal() + 
-      theme(axis.text.x = element_text(angle = -90)) # Rotate gene names x-axis
-  }
-  
-  # Generate boxplot for when only one gene is chosen
-  
-  else {
-    ggplot(data = data,
-           aes(x = gene, 
-               y = expression)) +
-      geom_boxplot() +
-      labs(x = "Gene", 
-           y = "Expression level(log2 TPM)") + 
-      theme_minimal()
-  }
+  ggplot(data = data,
+         aes(x = gene, 
+             y = expression)) +
+    geom_boxplot() +
+    labs(x = "Gene", 
+         y = "Expression level(log2 TPM)") + 
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = text_angle)) # Rotate gene names x-axis
 }
-
 
 
 #' Generate heat map
@@ -99,46 +84,40 @@ generate_box_plot <- function(data){
 #' y-axis and shows the expression levels with colour (fill).
 #' 
 #' @param data merged dataframe of tidy_expression and model
+#' @param text_angle int that determines rotation of x-axis labels
+#' @param palette string that determines color palette of heatmap
 #' @return a ggplot2 heat map object
 #' @examples
-#' generate_heatmap(merged)
+#' generate_heatmap(merged, -90, "Blues")
 
-generate_heatmap <- function(data, text_angle){
+generate_heatmap <- function(data, text_angle, palette){
   
-  # Generate heat map for when less than 6 genes are selected
+  # Generate heat map 
   
-  # if (length(unique(data$gene)) < 6) {
-  #   ggplot(data = data, 
-  #          aes(x = gene, 
-  #              y = StrippedCellLineName, 
-  #              fill= expression)) +
-  #     geom_tile() + 
-  #     ylab("Tumor Cell Line") +
-  #     xlab("Gene") +
-  #     labs(fill = "Expression level (log2 TPM)") +
-  #     theme_minimal() + 
-  #     scale_fill_distiller(palette = "RdPu")
-  #   
-  # }
-  # 
-  # else {
-    
-    # Generate heat map for when more than 6 genes are selected (rotates x-axis labels)
-    
-    ggplot(data = data, 
-           aes(x = gene, 
-               y = StrippedCellLineName, 
-               fill= expression)) +
-      geom_tile() + 
-      ylab("Tumor Cell Line") +
-      xlab("Gene") +
-      labs(fill = "Expression level (log2 TPM)") +
-      theme_minimal() + 
-      theme(axis.text.x = element_text(angle = text_angle))
-  }
+  ggplot(data = data, 
+         aes(x = gene, 
+             y = StrippedCellLineName, 
+             fill= expression)) +
+    geom_tile() + 
+    ylab("Tumor Cell Line") +
+    xlab("Gene") +
+    labs(fill = "Expression level (log2 TPM)") +
+    theme_minimal() + 
+    theme(axis.text.x = element_text(angle = text_angle)) +
+    scale_fill_distiller(palette = palette)
+}
 
 
-
+#' Generate table
+#'
+#' This function generates a table using the merged data (tidy_expression + model)
+#' 
+#' The generated table shows three columns from the merged dataframe; "StrippedCellLineName", "gene", and "expression"
+#' 
+#' @param data merged dataframe of tidy_expression and model
+#' @return a table object
+#' @examples
+#' generate_table(merged)
 
 # Function for rendering table with filtered data
 generate_table <- function(data){
@@ -146,26 +125,3 @@ generate_table <- function(data){
   data %>% select(matches("StrippedCellLineName"), matches("gene"),
                   matches("expression"))
 }
-
-# 
-# merge_data <- function(filtered_metadata, filtered_expr) {
-#   
-#   filtered_metadata <- filter_data(input)
-#   filtered_expr <- filter_expression(filtered_metadata, input)
-#   merged <- merge(filtered_metadata[, c("ModelID", "StrippedCellLineName")], filtered_expr, by = "ModelID", all = FALSE)
-#   
-#   
-#   return(merged)
-# }
-
-
-# # Function for rendering barchart that shows gene expression of one gene across multiple cell lines (tab 3)
-# generate_plot_per_cell_line <- function(data){
-#   
-#   ggplot(data = data, aes(x=gene,y=expression)) +
-#     geom_bar(stat = "identity", fill = 'blue') + 
-#     ylab("Gene") + coord_flip() +
-#     xlab("Expression level(log2 TPM)") +
-#     theme_minimal()
-#   
-# }
