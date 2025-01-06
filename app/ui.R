@@ -5,7 +5,7 @@ library(shinyBS)
 library(bsicons)
 library(bslib)
 library(shinyjs)
-
+library(shinyjqui)
 
 
 ui <- page_fillable(
@@ -28,11 +28,6 @@ ui <- page_fillable(
                      multiple = TRUE),
       selectizeInput("age_category", label = "Select age category", 
                      choices = NULL, multiple = TRUE),
-      sliderInput("cell_line_number", "Number of cell lines displayed:",
-                  min = 1, max = 100,
-                  value = 15, step = 1),
-      checkboxInput("checkbox", label = "Hide cell lines where gene expression = 0?", 
-                    value = FALSE),
       
       submitButton(text = "Apply settings")
     )
@@ -47,6 +42,10 @@ ui <- page_fillable(
              nav_panel("Bar plot", 
                        layout_sidebar(
                          sidebar = sidebar(
+                           radioButtons("barplot_x_axis_parameter", 
+                                        label = "Choose x-axis parameter", 
+                                        choices = c("Gene", "Cell line"), 
+                                        selected = "Gene"),
                            radioButtons("barplot_parameter", 
                                         label = "Choose parameter to visualise",
                                         choices = c("Sex", "Age Category", "Race", "Cancer Type"), 
@@ -74,7 +73,13 @@ ui <- page_fillable(
              
              nav_panel("Heatmap", 
                        layout_sidebar(
+                         
                          sidebar = sidebar(
+                           radioButtons("palette", 
+                                        label = "Choose color palette",
+                                        choices = c("Purple-Green", "Red-Blue", "Blue", "Grayscale"), 
+                                        selected = "Blue",
+                           ),
                            submitButton(text = "Apply settings")),
                          shinycssloaders::withSpinner((jqui_resizable(plotlyOutput("heatmap_per_gene"))))
                        ),

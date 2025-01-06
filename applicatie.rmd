@@ -173,17 +173,21 @@ tidy_expression <- expression_db %>%
 ```
 
 
-The metadata in the `model` dataframe is already formatted according the Tidy requirements, seeing as all columns have a unique variable, so no changes will have to be made to this dataframe.
+The metadata in the `model` data frame is already formatted according the Tidy requirements, seeing as all columns have a unique variable, so no changes will have to be made to this data frame.
 
 ## Look at expression
 
-Now that the expression data is tidy, we can now see what this data looks like. I will be visualising this using
+Now that the expression data is tidy, we can now see what this data looks like. First I will be visualizing the ranges of the expression data using a box plot.
+
+
 
 ```{r}
-
-prcomp(expression_data, scale = TRUE)
-pca_df <- as.data.frame(pca$x)
-ggplot(pca_df, aes(x = PC1, y = PC2, color = cell_line)) + geom_point()
+# Generate boxplot of all expression data in 'tidy_expression'
+    ggplot(data = tidy_expression,
+           aes(x = gene["DPM1"], y = expression)) +
+      geom_boxplot() +
+      labs(y = "Expression level(log2 TPM)") +
+      theme_minimal()
 
 ```
 
@@ -191,12 +195,12 @@ ggplot(pca_df, aes(x = PC1, y = PC2, color = cell_line)) + geom_point()
 
 **19-11-2024**
 
-I will not be merging the two datasets beforehand, seeing as that would add a lot of unnecessary extra metadata when converting the merged data to the long (tidy) format. Which will result in long loading times when launching the application. Hence I made it so that the two datasets will be merged after the filtering step, right before generating the plot. By doing this there will be a lot less data that has to be merged, because the data is filtered and is a lot less rows than the unfiltered data. The two datasets will be merged in the server script for the application, with the following code:
+I will not be merging the two data sets beforehand, seeing as that would add a lot of unnecessary extra metadata when converting the merged data to the long (tidy) format. Which will result in long loading times when launching the application. Hence I made it so that the two data sets will be merged after the filtering step, right before generating the plot. By doing this there will be a lot less data that has to be merged, because the data is filtered and is a lot less rows than the unfiltered data. The two data sets will be merged in the server script for the application, with the following code:
 ```{r, eval = FALSE}
 merged <- merge(filtered_metadata[, c("ModelID", "StrippedCellLineName")], filtered_expr, by = "ModelID", all = FALSE)
 ```
 
-The code merges the datasets `filtered_metadata` (which is the filtered result of model.Rdata, containing the metadata) and `filtered_expr` (which is the filtered result of tidy_expression which contains the gene expression data). The two datasets are merged on a corresponding factor, namely the ModelID. The ModelID is given in a column called `X` in `filtered_expr` and a column called `ModelID` in `filtered_metadata`. Using the merge()-function in base R, I give both tables and the columns on which they should be matched on and thereafter merged. 
+The code merges the data sets `filtered_metadata` (which is the filtered result of model.Rdata, containing the metadata) and `filtered_expr` (which is the filtered result of tidy_expression which contains the gene expression data). The two data sets are merged on a corresponding factor, namely the ModelID. The ModelID is given in a column called `X` in `filtered_expr` and a column called `ModelID` in `filtered_metadata`. Using the merge()-function in base R, I give both tables and the columns on which they should be matched on and thereafter merged. 
 
 `all = FALSE` tells the function to only keep the rows in which a match and merge has taken place, meaning that any of the rows from `model` or `expression_db` without a matching ID, will be removed. The rows that will be removed will only be rows from `model`, as not all cell lines from model have been used in expression_db. 
 
@@ -406,22 +410,6 @@ generate_table <- function(data, input){
 tidy_merged %>% select(matches("StrippedCellLineName"), matches("gene"), matches("expression"))
 ```
 
-```{r, eval = FALSE}
-base <- ggplot(mpg2, aes(displ, hwy)) + 
-  geom_blank() + 
-  xlab(NULL) + 
-  ylab(NULL)
-
-base + facet_wrap(~class, ncol = 3)
-base + facet_wrap(~class, ncol = 3, as.table = FALSE)
-
-```
-
-```{r, eval = FALSE}
-filtered <- tidy_merged %>% filter(OncotreePrimaryDisease == "Ovarian Epithelial Tumor" 
-                                   & Sex == "Female"
-                                   & gene == "A1BG" | gene == "TSPAN6" )
-```
 
 facet_wrap to compare multiple genes, will probably be maximum of 10 in the application
 ```{r, eval = FALSE}

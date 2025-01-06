@@ -3,7 +3,6 @@ library(shiny)
 library(plotly)
 library(writexl)
 library(shinycssloaders) #loadingscreen
-library(shinyjqui) #resizable
 library(RColorBrewer)
 library(shinyjs)
 
@@ -15,8 +14,6 @@ server <- function(input, output, session) {
                          server = TRUE, 
                          selected = selected)
   }
-  
-  jqui_resizable(ui = "#plot_per_gene", operation = "enable")
   
   # Updates all dropdown inputs using server-side selectize
   selectize_input(ID = 'gene_name', choices = tidy_expression$gene,
@@ -41,7 +38,9 @@ server <- function(input, output, session) {
       filter(Sex %in% input$sex 
              & PatientRace %in% input$race 
              & AgeCategory %in% input$age_category 
-             & OncotreePrimaryDisease %in% input$onco_type)
+             & OncotreePrimaryDisease %in% input$onco_type
+             #& StrippedCellLineName %in% input$cell_line_name
+      )
     
     return(filtered_metadata)
   }
@@ -51,7 +50,7 @@ server <- function(input, output, session) {
     filtered_expr <- tidy_expression %>%
       filter(
         ModelID %in% filtered_metadata$ModelID,  # Match with ModelID or equivalent identifier
-        gene %in% input$gene_name          # Filter based on selected genes
+        gene %in% input$gene_name        # Filter based on selected genes
       )
     
     return(filtered_expr)
@@ -63,15 +62,27 @@ server <- function(input, output, session) {
     filtered_metadata <- filter_data(input)
     filtered_expr <- filter_expression(filtered_metadata, input)
     merged <- merge(filtered_metadata[, c("ModelID", "StrippedCellLineName", "Sex", "PatientRace", "AgeCategory", "OncotreePrimaryDisease")], filtered_expr, by = "ModelID", all = FALSE)
-    
+    print(merged)
     
     return(merged)
   }
   
   
   output$boxplot_per_gene <- renderPlotly({
+    
     merged <- merge_data(filtered_metadata, filtered_expr)
-    boxplot_per_gene <- generate_box_plot(merged)
+    
+    if (length(unique(merged$gene)) > 1) {
+      text_angle = -90
+      
+    }
+    else {
+      text_angle = 0
+    }
+    
+
+    
+    boxplot_per_gene <- generate_box_plot(merged, text_angle)
     return(boxplot_per_gene)
   })
   
@@ -81,40 +92,62 @@ server <- function(input, output, session) {
     if (length(unique(merged$gene)) > 6) {
       
       text_angle = -90
-    
+      
     }
     else {
       text_angle = 0
     }
-    heatmap_per_gene <- generate_heatmap(merged, text_angle)
+    
+    if(input$palette == "Grayscale"){
+      palette = "Greys"
+    }
+    
+    if(input$palette == "Purple-Green"){
+      palette = "PRGn"
+    }
+    
+    if(input$palette == "Blue"){
+      palette = "Blues"
+    }
+    
+    if(input$palette == "Red-Blue"){
+      palette = "RdBu"
+    }
+    
+    heatmap_per_gene <- generate_heatmap(merged, text_angle, palette)
+    
     return(heatmap_per_gene)
   })
   
   output$barplot_per_gene <- renderPlotly({
     merged <- merge_data(filtered_metadata, filtered_expr)
     
-    if (input$barplot_parameter == "Sex") {
+    if (input$barplot_x_axis_parameter == "Gene") {
       
-      barplot_per_gene <- generate_barplot(merged, merged$Sex, "Sex")
       
-    }
-    
-    if (input$barplot_parameter == "Race") {
+      if (input$barplot_parameter == "Sex") {
+        
+        barplot_per_gene <- generate_barplot(merged, merged$Sex, "Sex")
+        
+      }
       
-      barplot_per_gene <- generate_barplot(merged, merged$PatientRace, "Race")
+      if (input$barplot_parameter == "Race") {
+        
+        barplot_per_gene <- generate_barplot(merged, merged$PatientRace, "Race")
+        
+      }
       
-    }
-    
-    if (input$barplot_parameter == "Age Category") {
+      if (input$barplot_parameter == "Age Category") {
+        
+        barplot_per_gene <- generate_barplot(merged, merged$AgeCategory, "Age Category")
+        
+      }
       
-      barplot_per_gene <- generate_barplot(merged, merged$AgeCategory, "Age Category")
- 
-    }
-    
-    if (input$barplot_parameter == "Cancer Type") {
-      
-      barplot_per_gene <- generate_barplot(merged, merged$OncotreePrimaryDisease, "Cancer Type")
-      
+      if (input$barplot_parameter == "Cancer Type") {
+        
+        barplot_per_gene <- generate_barplot(merged, merged$OncotreePrimaryDisease, "Cancer Type")
+        
+      }
     }
     
     
