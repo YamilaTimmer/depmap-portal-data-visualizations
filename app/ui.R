@@ -2,7 +2,7 @@ library(shiny)
 library(plotly)
 library(DT)
 library(shinyBS)
-library(bsicons)
+#library(bsicons)
 library(bslib)
 library(shinyjs)
 library(shinyjqui)
@@ -89,18 +89,18 @@ ui <- page_fillable(
       
       
       
-      card( full_screen = TRUE, 
-            navset_card_tab
-            (useShinyjs(),
-              nav_panel("Filtered Data",
-                        shinycssloaders::withSpinner(DT::DTOutput("filtered_table")), 
-                        downloadButton("download_csv", "Download .csv"),
-                        downloadButton("download_excel", "Download .xlsx")
-              ),
-              nav_panel("Selected Data",
-                        DT::DTOutput("selected_table")
-              )
-            )
+      card(full_screen = TRUE, 
+           navset_card_tab
+           (useShinyjs(),
+             nav_panel("Filtered Data",
+                       shinycssloaders::withSpinner(DT::DTOutput("filtered_table")), 
+                       downloadButton("download_csv", "Download .csv"),
+                       downloadButton("download_excel", "Download .xlsx")
+             ),
+             nav_panel("Selected Data",
+                       DT::DTOutput("selected_table")
+             )
+           )
       ),
       col_widths = c(6, 6)),
     

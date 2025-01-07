@@ -1,7 +1,10 @@
-# Load data
+# Load data (pc)
 load("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\tidy_expression.rdata")
 load("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\model.rdata")
 
+# load dara (laptop)
+#load("C:\\Users\\yamil\\OneDrive - Hanzehogeschool Groningen\\Bio-informatica\\Jaar 2\\2.1 applicatie\\tidy_expression.rdata")
+#load("C:\\Users\\yamil\\OneDrive - Hanzehogeschool Groningen\\Bio-informatica\\Jaar 2\\2.1 applicatie\\model.rdata")
 
 #' Generate bar plot
 #'
@@ -68,7 +71,7 @@ generate_box_plot <- function(data, text_angle){
   ggplot(data = data,
          aes(x = gene, 
              y = expression)) +
-    geom_boxplot() +
+    geom_boxplot(outlier.shape = NA) +
     labs(x = "Gene", 
          y = "Expression level(log2 TPM)") + 
     theme_minimal() +
@@ -124,4 +127,21 @@ generate_table <- function(data){
   # Shows information from 3 columns: StrippedCellLineName, gene, expression
   data %>% select(matches("StrippedCellLineName"), matches("gene"),
                   matches("expression"))
+}
+
+
+#' Create hyperlink
+#'
+#' This function generates a hyperlink for genes, displayed in filtered_table.
+#' The gene name is shown as the display text and by clicking it, it will bring the
+#' user to a webpage containing more information about that gene.
+#' 
+#' 
+#' @param gene column from merged dataframe
+#' @return a hyperlink corresponding to the gene
+#' @examples
+#' create_link(gene)
+create_link <- function(gene) {
+  paste0("<a href='https://www.genecards.org/cgi-bin/carddisp.pl?gene=", gene, 
+         "' target='_blank'>", gene, "</a>") # target = '_blank' has to be added, to prevent the app from refreshing when a hyperlink is clicked.
 }

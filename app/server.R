@@ -62,15 +62,17 @@ server <- function(input, output, session) {
     filtered_metadata <- filter_data(input)
     filtered_expr <- filter_expression(filtered_metadata, input)
     merged <- merge(filtered_metadata[, c("ModelID", "StrippedCellLineName", "Sex", "PatientRace", "AgeCategory", "OncotreePrimaryDisease")], filtered_expr, by = "ModelID", all = FALSE)
-    print(merged)
-    
+
     return(merged)
   }
   
   
   output$boxplot_per_gene <- renderPlotly({
     
+    
     merged <- merge_data(filtered_metadata, filtered_expr)
+    
+    req(nrow(merged) >= 1)
     
     if (length(unique(merged$gene)) > 1) {
       text_angle = -90
@@ -80,14 +82,18 @@ server <- function(input, output, session) {
       text_angle = 0
     }
     
-
+    
     
     boxplot_per_gene <- generate_box_plot(merged, text_angle)
     return(boxplot_per_gene)
   })
   
+  
   output$heatmap_per_gene <- renderPlotly({
+    
     merged <- merge_data(filtered_metadata, filtered_expr)
+    
+    req(nrow(merged) >= 1)
     
     if (length(unique(merged$gene)) > 6) {
       
@@ -98,19 +104,22 @@ server <- function(input, output, session) {
       text_angle = 0
     }
     
+    # palletes een lijst maken paletttes -< list("greyscale
+    # palette = palettes(input$palette))
+    
     if(input$palette == "Grayscale"){
       palette = "Greys"
     }
     
-    if(input$palette == "Purple-Green"){
+    else if(input$palette == "Purple-Green"){
       palette = "PRGn"
     }
     
-    if(input$palette == "Blue"){
+    else if(input$palette == "Blue"){
       palette = "Blues"
     }
     
-    if(input$palette == "Red-Blue"){
+    else if(input$palette == "Red-Blue"){
       palette = "RdBu"
     }
     
@@ -158,7 +167,10 @@ server <- function(input, output, session) {
   # Renders table with filtered data (tab 2)
   output$filtered_table <- renderDT({
     merged <- merge_data(filtered_metadata, filtered_expr)
-    generate_table(merged)
+    req(nrow(merged) >= 1)
+    
+    merged$gene <- create_link(merged$gene)
+    datatable(generate_table(merged), escape=FALSE)
   })
   
   
