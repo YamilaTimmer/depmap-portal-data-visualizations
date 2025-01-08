@@ -31,6 +31,8 @@ server <- function(input, output, session) {
   selectize_input(ID = 'cell_line_name', choices = unique(model$StrippedCellLineName), 
                   selected = sort(model$StrippedCellLineName[1]))
   
+
+  
   
   # Function to filter metadata based on input values
   filter_data <- function(input) {
@@ -62,7 +64,7 @@ server <- function(input, output, session) {
     filtered_metadata <- filter_data(input)
     filtered_expr <- filter_expression(filtered_metadata, input)
     merged <- merge(filtered_metadata[, c("ModelID", "StrippedCellLineName", "Sex", "PatientRace", "AgeCategory", "OncotreePrimaryDisease")], filtered_expr, by = "ModelID", all = FALSE)
-
+    
     return(merged)
   }
   
@@ -104,24 +106,13 @@ server <- function(input, output, session) {
       text_angle = 0
     }
     
-    # palletes een lijst maken paletttes -< list("greyscale
-    # palette = palettes(input$palette))
+    # Assign heatmap options to corresponding colorbrewer names
+    palettes <- list("Grayscale" = "Greys", "Purple-Green" = "PRGn", 
+                     "Blue" = "Blues", "Red-Blue" = "RdBu")
     
-    if(input$palette == "Grayscale"){
-      palette = "Greys"
-    }
+    # Assigns palette to heatmap that aligns with chosen option
+    palette = palettes[[input$palette]]
     
-    else if(input$palette == "Purple-Green"){
-      palette = "PRGn"
-    }
-    
-    else if(input$palette == "Blue"){
-      palette = "Blues"
-    }
-    
-    else if(input$palette == "Red-Blue"){
-      palette = "RdBu"
-    }
     
     heatmap_per_gene <- generate_heatmap(merged, text_angle, palette)
     
@@ -129,37 +120,70 @@ server <- function(input, output, session) {
   })
   
   output$barplot_per_gene <- renderPlotly({
+    
     merged <- merge_data(filtered_metadata, filtered_expr)
     
+    selectize_input(ID = 'table_columns', 
+                    choices = colnames(merged), 
+                    selected = c("gene", "StrippedCellLineName", "expression"))
+    
+    req(nrow(merged) >= 1)
+    
+    data = merged
+    
+    if (input$barplot_parameter == "Sex") {
+      fill = merged$Sex
+      fill_label = "Sex"
+      
+    }
+    
+    else if (input$barplot_parameter == "Race") {
+      fill = merged$PatientRace
+      fill_label = "Race"
+      
+    }
+    
+    else if (input$barplot_parameter == "Age Category") {
+      fill = merged$AgeCategory
+      fill_label = "Age Category"
+      
+    }
+    
+    else if (input$barplot_parameter == "Cancer Type") {
+      fill = merged$OncotreePrimaryDisease
+      fill_label = "Cancer Type"
+      
+    }
+    
     if (input$barplot_x_axis_parameter == "Gene") {
+      y = reorder(merged$StrippedCellLineName, merged$expression)
+      
+      barplot_per_gene <- generate_barplot(data, y, fill, fill_label) + 
+        ylab("Tumor Cell Line")
       
       
-      if (input$barplot_parameter == "Sex") {
-        
-        barplot_per_gene <- generate_barplot(merged, merged$Sex, "Sex")
-        
-      }
-      
-      if (input$barplot_parameter == "Race") {
-        
-        barplot_per_gene <- generate_barplot(merged, merged$PatientRace, "Race")
-        
-      }
-      
-      if (input$barplot_parameter == "Age Category") {
-        
-        barplot_per_gene <- generate_barplot(merged, merged$AgeCategory, "Age Category")
-        
-      }
-      
-      if (input$barplot_parameter == "Cancer Type") {
-        
-        barplot_per_gene <- generate_barplot(merged, merged$OncotreePrimaryDisease, "Cancer Type")
+      if (length(merged$gene) > 1) {
+        # Facet wrap to display multiple bar plots of each of the chosen genes
+        barplot_per_gene <- generate_barplot(data, merged$StrippedCellLineName, fill, fill_label) + 
+          facet_wrap( ~ merged$gene) +
+          ylab("Tumor Cell Line")
         
       }
     }
     
-    
+    else if (input$barplot_x_axis_parameter == "Cell line") {
+      y = reorder(merged$gene, merged$expression)
+      
+      barplot_per_gene <- generate_barplot(data, y, fill, fill_label) + 
+        ylab("Gene")
+      
+      if (length(merged$StrippedCellLineName) > 1) {
+        # Facet wrap to display multiple bar plots of each of the chosen cell lines
+        barplot_per_gene <- generate_barplot(data, merged$gene, fill, fill_label) + 
+          facet_wrap( ~ merged$StrippedCellLineName) +
+          ylab("Gene")
+      }
+    }
     return(barplot_per_gene)
   })
   
@@ -167,12 +191,14 @@ server <- function(input, output, session) {
   # Renders table with filtered data (tab 2)
   output$filtered_table <- renderDT({
     merged <- merge_data(filtered_metadata, filtered_expr)
+    
     req(nrow(merged) >= 1)
     
+    merged %>% dplyr::select(matches(input$table_columns))
+
     merged$gene <- create_link(merged$gene)
-    datatable(generate_table(merged), escape=FALSE)
+    datatable((merged), escape = FALSE) # Escape false in order to render the hyperlink properly
   })
-  
   
   
   # Allows for downloading data as .csv file

@@ -1,10 +1,10 @@
 # Load data (pc)
-load("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\tidy_expression.rdata")
-load("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\model.rdata")
+#load("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\tidy_expression.rdata")
+#load("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\model.rdata")
 
 # load dara (laptop)
-#load("C:\\Users\\yamil\\OneDrive - Hanzehogeschool Groningen\\Bio-informatica\\Jaar 2\\2.1 applicatie\\tidy_expression.rdata")
-#load("C:\\Users\\yamil\\OneDrive - Hanzehogeschool Groningen\\Bio-informatica\\Jaar 2\\2.1 applicatie\\model.rdata")
+load("C:\\Users\\yamil\\OneDrive - Hanzehogeschool Groningen\\Bio-informatica\\Jaar 2\\2.1 applicatie\\tidy_expression.rdata")
+load("C:\\Users\\yamil\\OneDrive - Hanzehogeschool Groningen\\Bio-informatica\\Jaar 2\\2.1 applicatie\\model.rdata")
 
 #' Generate bar plot
 #'
@@ -19,36 +19,22 @@ load("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicati
 #' @examples
 #' generate_barplot(merged, merged$AgeCategory)
 
-generate_barplot <- function(data, fill, fill_label){
+generate_barplot <- function(data, y, fill, fill_label){
   
   # Generate barplot for when multiple genes are chosen
   
-  if (length(unique(data$gene)) > 1) {
+  if (length(unique(data$gene)) >= 1) {
     ggplot(data = data, 
            aes(x = expression,
-               y = StrippedCellLineName,
+               y = y,
                fill = fill)) +
-      geom_bar(stat = "identity") + 
-      ylab("Tumor Cell Line") +
-      xlab("Expression level (log2 TPM)") +
-      labs(fill = fill_label) +
-      theme_minimal() + 
-      facet_wrap( ~ gene) # To display multiple bar plots of each of the chosen genes
-  }
-  
-  # Generate barplot for when only one gene is chosen, here the cell lines will be sorted on expression levels
-  
-  else {
-    ggplot(data = data, 
-           aes(x = expression, 
-               y = reorder(StrippedCellLineName, expression), # Sort from high to low expression 
-               fill = fill)) + 
       geom_bar(stat = "identity") + 
       ylab("Tumor Cell Line") +
       xlab("Expression level (log2 TPM)") +
       labs(fill = fill_label) +
       theme_minimal()
   }
+  
 }
 
 
@@ -123,11 +109,11 @@ generate_heatmap <- function(data, text_angle, palette){
 #' generate_table(merged)
 
 # Function for rendering table with filtered data
-generate_table <- function(data){
-  # Shows information from 3 columns: StrippedCellLineName, gene, expression
-  data %>% select(matches("StrippedCellLineName"), matches("gene"),
-                  matches("expression"))
-}
+# generate_table <- function(data){
+# # Shows information from 3 columns: StrippedCellLineName, gene, expression
+#  data %>% select(matches("StrippedCellLineName"), matches("gene"),
+#                    matches("expression"))
+#  }
 
 
 #' Create hyperlink

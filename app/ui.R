@@ -93,6 +93,9 @@ ui <- page_fillable(
            navset_card_tab
            (useShinyjs(),
              nav_panel("Filtered Data",
+                       selectizeInput('table_columns', label = "Select table columns to be displayed", 
+                                     choices = NULL, multiple = TRUE),
+                       submitButton(text = "Apply settings"),
                        shinycssloaders::withSpinner(DT::DTOutput("filtered_table")), 
                        downloadButton("download_csv", "Download .csv"),
                        downloadButton("download_excel", "Download .xlsx")
