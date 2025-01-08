@@ -32,7 +32,7 @@ generate_barplot <- function(data, y, fill, fill_label){
       ylab("Tumor Cell Line") +
       xlab("Expression level (log2 TPM)") +
       labs(fill = fill_label) +
-      theme_minimal()
+      theme_minimal() 
   }
   
 }
@@ -50,15 +50,16 @@ generate_barplot <- function(data, y, fill, fill_label){
 #' @examples
 #' generate_box_plot(merged)
 
-generate_box_plot <- function(data, text_angle){
+generate_box_plot <- function(data, parameter, text_angle, xlab){
   
   # Generates boxplot
   
   ggplot(data = data,
-         aes(x = gene, 
-             y = expression)) +
-    geom_boxplot(outlier.shape = NA) +
-    labs(x = "Gene", 
+         aes(x = parameter, 
+             y = expression,
+             fill = parameter)) +
+    geom_boxplot() +
+    labs(x = xlab, 
          y = "Expression level(log2 TPM)") + 
     theme_minimal() +
     theme(axis.text.x = element_text(angle = text_angle)) # Rotate gene names x-axis

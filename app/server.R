@@ -63,14 +63,16 @@ server <- function(input, output, session) {
     
     filtered_metadata <- filter_data(input)
     filtered_expr <- filter_expression(filtered_metadata, input)
-    merged <- merge(filtered_metadata[, c("ModelID", "StrippedCellLineName", "Sex", "PatientRace", "AgeCategory", "OncotreePrimaryDisease")], filtered_expr, by = "ModelID", all = FALSE)
+    merged <- merge(filtered_metadata[, c("ModelID", "StrippedCellLineName", 
+                                          "Sex", "PatientRace", "AgeCategory", 
+                                          "OncotreePrimaryDisease")], 
+                    filtered_expr, by = "ModelID", all = FALSE)
     
     return(merged)
   }
   
   
   output$boxplot_per_gene <- renderPlotly({
-    
     
     merged <- merge_data(filtered_metadata, filtered_expr)
     
@@ -84,9 +86,41 @@ server <- function(input, output, session) {
       text_angle = 0
     }
     
+
+    if (input$boxplot_parameter == "Sex"){
+    #   
+     parameter = merged$Sex
+       xlab = "Sex" 
+    }
+    
+    else if (input$boxplot_parameter == "Race"){
+      #   
+      parameter = merged$PatientRace
+      xlab = "Race" 
+    }
+    
+    else if (input$boxplot_parameter == "Age Category"){
+      #   
+      parameter = merged$AgeCategory
+      xlab = "Age Category" 
+    }
+    
+    else if (input$boxplot_parameter == "Cancer Type"){
+      #   
+      parameter = merged$OncotreePrimaryDisease
+      xlab = "Cancer Type" 
+    }
     
     
-    boxplot_per_gene <- generate_box_plot(merged, text_angle)
+    if (input$individual_points_checkbox == TRUE) {
+      boxplot_per_gene <- generate_box_plot(merged, parameter, text_angle, xlab) + geom_point() 
+      
+    }
+    
+    else {
+      boxplot_per_gene <- generate_box_plot(merged, parameter, text_angle, xlab) 
+      
+    }
     return(boxplot_per_gene)
   })
   
@@ -194,10 +228,12 @@ server <- function(input, output, session) {
     
     req(nrow(merged) >= 1)
     
-    merged %>% dplyr::select(matches(input$table_columns))
+    merged %>% select(matches(input$table_columns))
 
     merged$gene <- create_link(merged$gene)
-    datatable((merged), escape = FALSE) # Escape false in order to render the hyperlink properly
+    filtered_table <- datatable((merged), escape = FALSE) # Escape false in order to render the hyperlink properly
+    
+    return(filtered_table)
   })
   
   

@@ -62,8 +62,13 @@ ui <- page_fillable(
              nav_panel("Boxplot", 
                        layout_sidebar(
                          sidebar = sidebar(
-                           checkboxInput("outliers_checkbox", 
-                                         label = "Show outliers?", 
+                           radioButtons("boxplot_parameter", 
+                                        label = "Choose parameter to visualise",
+                                        choices = c("Sex", "Age Category", "Race", "Cancer Type"), 
+                                        selected = "Sex",
+                           ),
+                           checkboxInput("individual_points_checkbox", 
+                                         label = "Show individual points?", 
                                          value = TRUE),
                            submitButton(text = "Apply settings")
                          ),
