@@ -7,13 +7,13 @@
 
 ## Description
 
-Within the [Dependency Map](https://depmap.org/portal/) (DepMap) portal offers large batches of open-access cancer research data, in order to support new scientific discoveries within this field. However visualising large amounts of data has proven to be difficult. DepMap visualiser is a tool that allows users to visualise DepMap data in various ways, such as barplots, boxplots and heatmaps. Users can do all of this while filtering on specific metadata to include/exclude the data, as the user wishes.
+The [Dependency Map](https://depmap.org/portal/) (DepMap) portal offers large batches of open-access cancer research data, in order to support new scientific discoveries within the field. However visualising large amounts of data has proven to be difficult. DepMap Visualiser is a tool that allows users to visualise DepMap data in various ways, such as barplots, boxplots and heatmaps. Users can do all of this while filtering on specific metadata to include/exclude the data, as the user wishes.
 
 
 ### Key-features
 - Visualise large batches of DepMap data,
 - Allows selecting different metadata parameters, to fine-tune data,
-- The ability to save the generated visuals and the table data (.csv/.xlsx),
+- The ability to save the generated visuals (.png) and the table data (.csv/.xlsx),
 - User-friendly dashboard interface.
 
 ## System requirements and installation
@@ -54,10 +54,12 @@ install.packages(c(
   "ggplot2"
 ))
 ```
+
 Launch the app
+
 ```r
 library(shiny)
-runApp("path/to/DepMap-Visualiser")
+runApp('app')
 ```
 
 ## Usage
@@ -79,16 +81,13 @@ Use the sidebar to select the wanted genes, cancer types and additional demograp
 6. The visualization can be saved by pressing the 'save as .png' button
 
 ## Explore data
-View the data that is generated on the selected parameters in the table on the right side. The data can be sorted on columns from low/high, or you can perform do a specific search using the search bar in the top right.
+View the data that is generated for the selected parameters, in the table on the right side. The data can be sorted on columns from low/high, or you can perform do a specific search using the search bar in the top right.
 The data can be saved as either a comma-seperated-value (.csv) file, or an excel file (.xslx)
-
-
 
 Screenshots
 Bar Plot
-Boxplot
+Boxplot/violinplot
 Heatmap
-
 
 ## Support
 In case of any bugs or needed support, open up an issue at [my repo](https://github.com/YamilaTimmer/depmap-portal-data-visualizations/issues).
@@ -99,7 +98,14 @@ This project is licensed under the MIT License. See the LICENSE file for details
 ## Acknowledgments
 DepMap Visualiser integrates the following R packages:
 
-- [**name**](repo)
-  - Description: 
-  - Repository: 
-  - License: 
+| Package Name        | Description                                                 |
+|---------------------|-------------------------------------------------------------|
+| [Shiny](https://github.com/rstudio/shiny) | Package that allows creating interactive R applications |
+| [plotly](https://github.com/plotly/plotly.R)| Package that allows creating interactive graphs |
+| [writexl](https://github.com/ropensci/writexl) | For converting dataframe to excel (.xslx)-format |
+| [shinycssloaders](https://github.com/daattali/shinycssloaders)| Used for adding loading icons in application |
+| [RColorBrewer](https://github.com/cran/RColorBrewer)| Used for adding color palettes to heat map  |
+| [DT](https://github.com/rstudio/DT)| Used for interactive datatable output in application |
+| [bslib](https://github.com/rstudio/bslib/) | Used for layout/structuring of application  |
+| [shinyjqui](https://github.com/Yang-Tang/shinyjqui)| Used for making plots resizable |
+| [ggplot2](https://github.com/tidyverse/ggplot2)| Used for making all plots (bar plot, boxplot, violin plot, heatmap)|
