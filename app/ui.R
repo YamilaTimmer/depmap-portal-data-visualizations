@@ -1,18 +1,19 @@
-library(shiny)
-library(plotly)
-library(DT)
-library(shinyBS)
-#library(bsicons)
-library(bslib)
-library(shinyjs)
-library(shinyjqui)
-
+source("functions.R")
 
 ui <- page_fillable(
   
   page_navbar(
     
     title = "DepMap Visualiser", sidebar = sidebar(
+      
+      tags$style(HTML("
+
+        .selectize-input, .bslib-sidebar {
+          width: 280px; /* Adjust sidebar width */
+        }
+        
+      ")),
+      
       
       h4("Select parameters:"),
       # input dropdown menus for all list variables
@@ -38,7 +39,6 @@ ui <- page_fillable(
     layout_columns(
       card(full_screen = TRUE, 
            navset_card_tab(
-             useShinyjs(),
              nav_panel("Bar plot", 
                        layout_sidebar(
                          sidebar = sidebar(
@@ -59,7 +59,7 @@ ui <- page_fillable(
              ),
              
              
-             nav_panel("Boxplot", 
+             nav_panel("Boxplot/Violin plot", 
                        layout_sidebar(
                          sidebar = sidebar(
                            radioButtons("boxplot_parameter", 
@@ -70,11 +70,18 @@ ui <- page_fillable(
                            checkboxInput("individual_points_checkbox", 
                                          label = "Show individual points?", 
                                          value = TRUE),
-                           submitButton(text = "Apply settings")
-                         ),
+                           radioButtons("boxplot_violinplot", 
+                                        label = "Display as boxplot or violin plot?",
+                                        choices = c("Boxplot", "Violin plot"), 
+                                        selected = "Boxplot",
+                           ),
+                           submitButton(text = "Apply settings")),
+                         
                          shinycssloaders::withSpinner((jqui_resizable(plotlyOutput("boxplot_per_gene"))))
                        )
+                       
              ),
+             
              
              nav_panel("Heatmap", 
                        layout_sidebar(
@@ -96,18 +103,15 @@ ui <- page_fillable(
       
       card(full_screen = TRUE, 
            navset_card_tab
-           (useShinyjs(),
-             nav_panel("Filtered Data",
+           (nav_panel("Filtered Data",
                        selectizeInput('table_columns', label = "Select table columns to be displayed", 
-                                     choices = NULL, multiple = TRUE),
+                                      choices = NULL, multiple = TRUE),
                        submitButton(text = "Apply settings"),
                        shinycssloaders::withSpinner(DT::DTOutput("filtered_table")), 
                        downloadButton("download_csv", "Download .csv"),
                        downloadButton("download_excel", "Download .xlsx")
              ),
-             nav_panel("Selected Data",
-                       DT::DTOutput("selected_table")
-             )
+             
            )
       ),
       col_widths = c(6, 6)),

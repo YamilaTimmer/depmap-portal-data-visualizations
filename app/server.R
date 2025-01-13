@@ -1,10 +1,5 @@
 source("functions.R")
-library(shiny)
-library(plotly)
-library(writexl)
-library(shinycssloaders) #loadingscreen
-library(RColorBrewer)
-library(shinyjs)
+
 
 server <- function(input, output, session) {
   
@@ -31,7 +26,7 @@ server <- function(input, output, session) {
   selectize_input(ID = 'cell_line_name', choices = unique(model$StrippedCellLineName), 
                   selected = sort(model$StrippedCellLineName[1]))
   
-
+  
   
   
   # Function to filter metadata based on input values
@@ -86,11 +81,11 @@ server <- function(input, output, session) {
       text_angle = 0
     }
     
-
+    
     if (input$boxplot_parameter == "Sex"){
-    #   
-     parameter = merged$Sex
-       xlab = "Sex" 
+      #   
+      parameter = merged$Sex
+      xlab = "Sex" 
     }
     
     else if (input$boxplot_parameter == "Race"){
@@ -106,23 +101,40 @@ server <- function(input, output, session) {
     }
     
     else if (input$boxplot_parameter == "Cancer Type"){
-      #   
+      
       parameter = merged$OncotreePrimaryDisease
       xlab = "Cancer Type" 
     }
     
     
-    if (input$individual_points_checkbox == TRUE) {
-      boxplot_per_gene <- generate_box_plot(merged, parameter, text_angle, xlab) + geom_point() 
+    if (input$boxplot_violinplot == "Boxplot" && input$individual_points_checkbox != TRUE) {
+      
+      boxplot_per_gene <- generate_box_plot(merged, parameter, text_angle, xlab) + geom_boxplot()
       
     }
     
-    else {
-      boxplot_per_gene <- generate_box_plot(merged, parameter, text_angle, xlab) 
+    
+    else if (input$boxplot_violinplot == "Violin plot" && input$individual_points_checkbox != TRUE) {
+      
+      boxplot_per_gene <- generate_box_plot(merged, parameter, text_angle, xlab)  + geom_violin()
+      
       
     }
+    else if (input$boxplot_violinplot == "Boxplot" && input$individual_points_checkbox == TRUE) {
+      
+      boxplot_per_gene <- generate_box_plot(merged, parameter, text_angle, xlab) + geom_boxplot() + geom_point() 
+      
+    }
+    else if (input$boxplot_violinplot == "Violin plot" && input$individual_points_checkbox == TRUE) {
+      
+      boxplot_per_gene <- generate_box_plot(merged, parameter, text_angle, xlab) + geom_violin() + geom_point() 
+      
+    }
+    
     return(boxplot_per_gene)
   })
+  
+  
   
   
   output$heatmap_per_gene <- renderPlotly({
@@ -228,8 +240,8 @@ server <- function(input, output, session) {
     
     req(nrow(merged) >= 1)
     
-    merged %>% select(matches(input$table_columns))
-
+    merged <- merged %>% select(matches(input$table_columns))
+    
     merged$gene <- create_link(merged$gene)
     filtered_table <- datatable((merged), escape = FALSE) # Escape false in order to render the hyperlink properly
     
