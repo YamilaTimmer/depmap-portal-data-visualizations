@@ -1,12 +1,3 @@
-# Load data (pc)
-#load("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\tidy_expression.rdata")
-#load("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\model.rdata")
-
-# load data (laptop)
-#load("C:\\Users\\yamil\\OneDrive - Hanzehogeschool Groningen\\Bio-informatica\\Jaar 2\\2.1 applicatie\\tidy_expression.rdata")
-#load("C:\\Users\\yamil\\OneDrive - Hanzehogeschool Groningen\\Bio-informatica\\Jaar 2\\2.1 applicatie\\model.rdata")
-
-
 library(yaml)
 library(shiny)
 library(plotly) # make plots interactive
@@ -68,7 +59,7 @@ generate_barplot <- function(data, y, fill, fill_label){
 #' @examples
 #' generate_box_plot(merged, parameter, text_angle, xlab) + geom_boxplot()
 
-generate_box_plot <- function(data, parameter, text_angle, xlab){
+generate_box_plot <- function(data, parameter, text_angle, xlab, fill_label){
   
   ggplot(data = data,
          aes(x = parameter, 
@@ -76,6 +67,7 @@ generate_box_plot <- function(data, parameter, text_angle, xlab){
              fill = parameter)) +
     labs(x = xlab, 
          y = "Expression level(log2 TPM)") + 
+    labs(fill = fill_label) +
     theme_minimal() +
     theme(axis.text.x = element_text(angle = text_angle)) # Rotate gene names x-axis
 }
@@ -97,12 +89,10 @@ generate_box_plot <- function(data, parameter, text_angle, xlab){
 
 generate_heatmap <- function(data, text_angle, palette){
   
-  # Generate heat map 
-  
   ggplot(data = data, 
          aes(x = gene, 
              y = StrippedCellLineName, 
-             fill= expression)) +
+             fill = expression)) +
     geom_tile() + 
     ylab("Tumor Cell Line") +
     xlab("Gene") +

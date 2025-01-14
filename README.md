@@ -106,7 +106,7 @@ In case of any bugs or needed support, open up an issue at [my repo](https://git
 This project is licensed under the MIT License. See the LICENSE file for details.
 
 ## Acknowledgments
-DepMap Visualiser integrates the following R packages:
+The following R packages are integrated into DepMap Visualiser and/or have been used in the development:
 
 | Package Name        | Description                                                 | Version   |
 |---------------------|-------------------------------------------------------------|-----------|
@@ -119,6 +119,5 @@ DepMap Visualiser integrates the following R packages:
 | [bslib](https://github.com/rstudio/bslib/) | Used for layout/structuring of application  |0.8.0|
 | [shinyjqui](https://github.com/Yang-Tang/shinyjqui)| Used for making plots resizable |0.4.1|
 | [ggplot2](https://github.com/tidyverse/ggplot2)| Used for making all plots (bar plot, boxplot, violin plot, heatmap)|3.5.1|
-
-library(tidyr)
-library(naniar)
+| [naniar](https://github.com/njtierney/naniar)| Used for visualising missing data in EDA|1.1.0|
+| [tidyr](https://github.com/tidyverse/tidyr)| Used for making raw data tidy (horizontal -> vertical), in the data pre-processing|1.3.1|
