@@ -3,19 +3,26 @@
 #load("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\model.rdata")
 
 # load data (laptop)
-load("C:\\Users\\yamil\\OneDrive - Hanzehogeschool Groningen\\Bio-informatica\\Jaar 2\\2.1 applicatie\\tidy_expression.rdata")
-load("C:\\Users\\yamil\\OneDrive - Hanzehogeschool Groningen\\Bio-informatica\\Jaar 2\\2.1 applicatie\\model.rdata")
+#load("C:\\Users\\yamil\\OneDrive - Hanzehogeschool Groningen\\Bio-informatica\\Jaar 2\\2.1 applicatie\\tidy_expression.rdata")
+#load("C:\\Users\\yamil\\OneDrive - Hanzehogeschool Groningen\\Bio-informatica\\Jaar 2\\2.1 applicatie\\model.rdata")
 
+
+library(yaml)
 library(shiny)
 library(plotly) # make plots interactive
 library(writexl) # export to .xslx
 library(shinycssloaders) # loading icon
 library(RColorBrewer) # color palettes
-library(shinyjs)
 library(DT) # make datatables
 library(bslib) # used for layout/structuring of app
 library(shinyjqui) # make plots resizable
 library(ggplot2) # make plots
+
+config <- yaml::read_yaml("..\\config.yaml")
+
+load(config$expression_rdata)
+load(config$model_rdata)
+
 
 #' Generate bar plot
 #'
@@ -104,7 +111,6 @@ generate_heatmap <- function(data, text_angle, palette){
     theme(axis.text.x = element_text(angle = text_angle)) +
     scale_fill_distiller(palette = palette)
 }
-
 
 
 #' Create hyperlink

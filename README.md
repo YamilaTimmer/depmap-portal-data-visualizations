@@ -29,6 +29,16 @@ Download the following DepMap datasets from [https://depmap.org/portal/data_page
 - OmicsExpressionProteinCodingGenesTPMLogp1
 - Model.csv
 
+Before the datasets can be used in the application, a little pre-processing will have to take place. First, open `config.yaml` and change the paths for expression_csv and model_csv to the paths where the datasets have been saved on your computer. Next choose where you want the resulting R data objects to be saved on your pc. This will be the same path that is used for retrieving the data again for the app, so make sure to not move the data afterwards, or change the path accordingly!
+
+Next, run the R-script `pre-processing_data.R`:
+
+```r
+library(shiny)
+runApp('app')
+```
+
+
 Clone the repository
 
 ```bash
@@ -98,14 +108,17 @@ This project is licensed under the MIT License. See the LICENSE file for details
 ## Acknowledgments
 DepMap Visualiser integrates the following R packages:
 
-| Package Name        | Description                                                 |
-|---------------------|-------------------------------------------------------------|
-| [Shiny](https://github.com/rstudio/shiny) | Package that allows creating interactive R applications |
-| [plotly](https://github.com/plotly/plotly.R)| Package that allows creating interactive graphs |
-| [writexl](https://github.com/ropensci/writexl) | For converting dataframe to excel (.xslx)-format |
-| [shinycssloaders](https://github.com/daattali/shinycssloaders)| Used for adding loading icons in application |
-| [RColorBrewer](https://github.com/cran/RColorBrewer)| Used for adding color palettes to heat map  |
-| [DT](https://github.com/rstudio/DT)| Used for interactive datatable output in application |
-| [bslib](https://github.com/rstudio/bslib/) | Used for layout/structuring of application  |
-| [shinyjqui](https://github.com/Yang-Tang/shinyjqui)| Used for making plots resizable |
-| [ggplot2](https://github.com/tidyverse/ggplot2)| Used for making all plots (bar plot, boxplot, violin plot, heatmap)|
+| Package Name        | Description                                                 | Version   |
+|---------------------|-------------------------------------------------------------|-----------|
+| [Shiny](https://github.com/rstudio/shiny) | Package that allows creating interactive R applications |1.9.1|
+| [plotly](https://github.com/plotly/plotly.R)| Package that allows creating interactive graphs |4.10.4|
+| [writexl](https://github.com/ropensci/writexl) | For converting dataframe to excel (.xslx)-format |1.5.1|
+| [shinycssloaders](https://github.com/daattali/shinycssloaders)| Used for adding loading icons in application |1.1.0|
+| [RColorBrewer](https://github.com/cran/RColorBrewer)| Used for adding color palettes to heat map  |1.1.3|
+| [DT](https://github.com/rstudio/DT)| Used for interactive datatable output in application |0.33|
+| [bslib](https://github.com/rstudio/bslib/) | Used for layout/structuring of application  |0.8.0|
+| [shinyjqui](https://github.com/Yang-Tang/shinyjqui)| Used for making plots resizable |0.4.1|
+| [ggplot2](https://github.com/tidyverse/ggplot2)| Used for making all plots (bar plot, boxplot, violin plot, heatmap)|3.5.1|
+
+library(tidyr)
+library(naniar)

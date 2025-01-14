@@ -23,10 +23,6 @@ server <- function(input, output, session) {
                       "east_indian", "north_african"))
   selectize_input(ID = "age_category", choices = model$AgeCategory, selected = 
                     c("Fetus", "Pediatric", "Adult"))
-  selectize_input(ID = 'cell_line_name', choices = unique(model$StrippedCellLineName), 
-                  selected = sort(model$StrippedCellLineName[1]))
-  
-  
   
   
   # Function to filter metadata based on input values
@@ -41,6 +37,7 @@ server <- function(input, output, session) {
     
     return(filtered_metadata)
   }
+  
   
   # Function to filter expression data based on filtered metadata and input
   filter_expression <- function(filtered_metadata, input) {
@@ -81,7 +78,6 @@ server <- function(input, output, session) {
       text_angle = 0
     }
     
-    
     if (input$boxplot_parameter == "Sex"){
       #   
       parameter = merged$Sex
@@ -106,18 +102,15 @@ server <- function(input, output, session) {
       xlab = "Cancer Type" 
     }
     
-    
     if (input$boxplot_violinplot == "Boxplot" && input$individual_points_checkbox != TRUE) {
       
       boxplot_per_gene <- generate_box_plot(merged, parameter, text_angle, xlab) + geom_boxplot()
       
     }
     
-    
     else if (input$boxplot_violinplot == "Violin plot" && input$individual_points_checkbox != TRUE) {
       
       boxplot_per_gene <- generate_box_plot(merged, parameter, text_angle, xlab)  + geom_violin()
-      
       
     }
     else if (input$boxplot_violinplot == "Boxplot" && input$individual_points_checkbox == TRUE) {
@@ -133,8 +126,6 @@ server <- function(input, output, session) {
     
     return(boxplot_per_gene)
   })
-  
-  
   
   
   output$heatmap_per_gene <- renderPlotly({
@@ -159,11 +150,11 @@ server <- function(input, output, session) {
     # Assigns palette to heatmap that aligns with chosen option
     palette = palettes[[input$palette]]
     
-    
     heatmap_per_gene <- generate_heatmap(merged, text_angle, palette)
     
     return(heatmap_per_gene)
   })
+  
   
   output$barplot_per_gene <- renderPlotly({
     
@@ -243,7 +234,11 @@ server <- function(input, output, session) {
     merged <- merged %>% select(matches(input$table_columns))
     
     merged$gene <- create_link(merged$gene)
+    
+    merged$expression <- round(merged$expression, 5)
+    
     filtered_table <- datatable((merged), escape = FALSE) # Escape false in order to render the hyperlink properly
+    
     
     return(filtered_table)
   })
@@ -262,6 +257,7 @@ server <- function(input, output, session) {
       write.csv(filtered, file, row.names = FALSE)
     }
   )
+  
   
   # Allows for downloading data as .xlsx file
   output$download_excel <- downloadHandler(
