@@ -1,5 +1,5 @@
-library(yaml)
-library(shiny)
+library(yaml) # read config paths
+library(shiny) # creating interactive app
 library(plotly) # make plots interactive
 library(writexl) # export to .xslx
 library(shinycssloaders) # loading icon
@@ -9,6 +9,7 @@ library(bslib) # used for layout/structuring of app
 library(shinyjqui) # make plots resizable
 library(ggplot2) # make plots
 
+# Read paths to load saved R objects from pre-processing
 config <- yaml::read_yaml("..\\config.yaml")
 
 load(config$expression_rdata)
@@ -116,5 +117,6 @@ generate_heatmap <- function(data, text_angle, palette){
 #' create_link(gene)
 create_link <- function(gene) {
   paste0("<a href='https://www.genecards.org/cgi-bin/carddisp.pl?gene=", gene, 
-         "' target='_blank'>", gene, "</a>") # target = '_blank' has to be added, to prevent the app from refreshing when a hyperlink is clicked.
+         "' target='_blank'>", gene, "</a>") # target = '_blank' has to be added, 
+    #to prevent the app from refreshing when a hyperlink is clicked.
 }

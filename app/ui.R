@@ -45,7 +45,7 @@ ui <- page_fillable(
                            choices = NULL, 
                            multiple = TRUE),
             
-            submitButton(text = "Apply settings")
+            #actionButton("submit_button", label = "Apply settings")
         )
         ,
         
@@ -54,6 +54,8 @@ ui <- page_fillable(
         layout_columns(
             card(full_screen = TRUE, 
                  navset_card_tab(
+                     
+                     # Tab for barplot
                      nav_panel("Bar plot", 
                                layout_sidebar(
                                    sidebar = sidebar(
@@ -70,14 +72,16 @@ ui <- page_fillable(
                                                     selected = "Sex"
                                        ),
                                        
-                                       submitButton(text = "Apply settings")
+                                       #submitButton(text = "Apply settings")
                                    ),
                                    
+                                   # Output: resizable, interactive ggplot barplot (with loading icon)
                                    shinycssloaders::withSpinner(jqui_resizable(plotlyOutput("barplot_per_gene")))
                                )
                      ),
                      
                      
+                     # Tab for boxplot/violin plot
                      nav_panel("Boxplot/Violin plot", 
                                layout_sidebar(
                                    sidebar = sidebar(
@@ -97,15 +101,15 @@ ui <- page_fillable(
                                                     label = "Display as boxplot or violin plot?",
                                                     choices = c("Boxplot", "Violin plot"), 
                                                     selected = "Boxplot"
-                                       ),
-                                       
-                                       submitButton(text = "Apply settings")),
+                                       )
+                                   ),
                                    
+                                   # Output: resizable, interactive ggplot boxplot/violinplot (with loading icon)
                                    shinycssloaders::withSpinner((jqui_resizable(plotlyOutput("boxplot_per_gene"))))
                                )
                      ),
                      
-                     
+                     # Tab for heatmap
                      nav_panel("Heatmap", 
                                layout_sidebar(
                                    
@@ -115,20 +119,20 @@ ui <- page_fillable(
                                                     label = "Choose color palette",
                                                     choices = c("Purple-Green", "Red-Blue", "Blue", "Grayscale"), 
                                                     selected = "Blue"
+                                       )
                                        ),
-                                       
-                                       submitButton(text = "Apply settings")),
                                    
+                                   # Output: resizable, interactive ggplot heatmap (with loading icon)
                                    shinycssloaders::withSpinner((jqui_resizable(plotlyOutput("heatmap_per_gene"))))
                                ),
                      )
                  )
             ),
             
-            
-            
             card(full_screen = TRUE, 
                  navset_card_tab(
+                     
+                     # Tab for filtered data table
                      (nav_panel("Filtered Data",
                                 
                                 selectizeInput('table_columns', 
@@ -136,10 +140,10 @@ ui <- page_fillable(
                                                choices = NULL, 
                                                multiple = TRUE),
                                 
-                                submitButton(text = "Apply settings"),
-                                
+                                # Output: filtered datatable (with loading icon)
                                 shinycssloaders::withSpinner(DT::DTOutput("filtered_table")),
                                 
+                                # Download buttons merged data (.csv/.xslx)
                                 downloadButton("download_csv", "Download .csv"),
                                 downloadButton("download_excel", "Download .xlsx")
                      )
@@ -155,8 +159,10 @@ ui <- page_fillable(
                  )
             ),
             
+            # Column width for card 1 (plot output) and card 2 (table output)
             col_widths = c(6, 6)),
         
+        # Dark mode button, clicking switches between light/dark mode
         nav_item(input_dark_mode(id = "dark_mode", 
                                  mode = "light")
         )
