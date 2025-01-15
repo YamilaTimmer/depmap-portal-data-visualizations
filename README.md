@@ -29,16 +29,6 @@ Download the following DepMap datasets from [https://depmap.org/portal/data_page
 - OmicsExpressionProteinCodingGenesTPMLogp1
 - Model.csv
 
-Before the datasets can be used in the application, a little pre-processing will have to take place. First, open `config.yaml` and change the paths for expression_csv and model_csv to the paths where the datasets have been saved on your computer. Next choose where you want the resulting R data objects to be saved on your pc. This will be the same path that is used for retrieving the data again for the app, so make sure to not move the data afterwards, or change the path accordingly!
-
-Next, run the R-script `pre-processing_data.R`:
-
-```r
-library(shiny)
-runApp('app')
-```
-
-
 Clone the repository
 
 ```bash
@@ -61,11 +51,23 @@ install.packages(c(
   "shinyBS", 
   "bslib", 
   "shinyjqui", 
-  "ggplot2"
+  "ggplot2",
+  "yaml",
+  "tidyr"
 ))
 ```
 
+Before the datasets can be used in the application, a little pre-processing will have to take place. First, open `config.yaml` and change the paths for expression_csv and model_csv to the paths where the datasets have been saved on your computer. Next choose where you want the resulting R data objects to be saved on your pc. This will be the same path that is used for retrieving the data again for the app, so make sure to not move the data afterwards, or change the path accordingly!
+
+Next, run the R-script `pre-processing_data.R` (note: this step can take up to a few minutes, caused by the size of the dataset. This step will only have to be performed **once**):
+
+```r
+source("path/to/pre-processing_data.R")
+```
+
 Launch the app
+
+Now that the R data objects are created, the app itself can be run as following:
 
 ```r
 library(shiny)
