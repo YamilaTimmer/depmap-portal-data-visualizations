@@ -10,6 +10,17 @@ server <- function(input, output, session) {
                              selected = selected)
     }
     
+    # Dialog that pops up on app launch, with link to repo (for further info)
+    showModal(modalDialog(
+        title = "Welcome!",
+        size = "xl",
+        easyClose = FALSE,
+        tags$div("Thank you for using DepMap Visualiser! For more information on how to use the app, or for more information on the used data, please visit my GitHub repo. This can be done by clicking the GitHub logo at the top of the application, or by clicking ", 
+                 tags$a(href = "https://github.com/YamilaTimmer/depmap-portal-data-visualizations", "here"), 
+                 "."),
+        
+    ))
+    
     # Updates all dropdown inputs using server-side selectize
     selectize_input(ID = 'gene_name', choices = tidy_expression$gene,
                     selected = sort(tidy_expression$gene[1]))
@@ -72,14 +83,16 @@ server <- function(input, output, session) {
     # Makes merged data reactive, so that plots will be rendered instantly if 
     # the contents of the merged data do not change
     reactive_merged <- reactive({
+        
         merge_data(filtered_metadata, filtered_expr)
+        
     })
     
     
     # Calls function to generate barplot
     output$barplot_per_gene <- renderPlotly({
         
-        merged <- reactive_merged()    
+        merged <- reactive_merged()
         
         # Updates table_columns input based on colnames of merged
         selectize_input(ID = 'table_columns', 
