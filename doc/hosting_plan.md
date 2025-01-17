@@ -110,7 +110,7 @@ Having 10 concurrent users, without long loading times, seems very possible to m
 ### Version control
 Over time, bugs will be fixed and new features might be added. This results in new versions of the app and/or contents within the repo. These would have to manually be copied to the server folder every time. This can be automised using Git hooks, specifically the `post-receive` hooks, seeing as I want the server to be updated **after** the repo has been updated (see img below displaying the types of git hooks). Git hooks are in the `.git/hooks` folder and can manually be changed, so for this to work, the `post-receive hook` in the .git folder would need to have some instructions for git to copy the updated app to the server directory, after every push.
 
-![](..\media\git_hooks.PNG)
+![Different types of git hooks (Suthagar, 2018)](../media/git_hooks.PNG)
 
 ## Using a proxy
 In order to make the app available as HTTP (80) or HTTPS (443), a reverse-proxy is needed. The reason being that I don't have the rights to bind a process to any port below 1024 (*"well-known ports"*). The reverse-proxy will then forward any request made from the domain to the to the local server. Either `nginx` or `apache` would work for this, however I am choosing for `apache`, seeing as apache is more suited for more complex/reactive apps. 
@@ -158,3 +158,4 @@ The number behind `VirtualHost` (80), tells the proxy what port to listen to. In
 - Posit. (n.d.). Shiny Server Professional v1.5.22 Administrator’s Guide. https://docs.posit.co/shiny-server/
 - Posit. (2024, 26 april). Shiny Server v1.5.22.1017. https://posit.co/download/shiny-server/
 - Pylvainen, I. (2024, 2 juni). Running Shiny Server with a Proxy. https://support.posit.co/hc/en-us/articles/213733868-Running-Shiny-Server-with-a-Proxy
+- Suthagar, K. (2018, 28 februari). Git Hooks — Keep the Code Quality - Kailayapathy Suthagar - Medium. Medium. https://suthagar23.medium.com/git-hooks-keep-the-code-quality-119e6feb511e
