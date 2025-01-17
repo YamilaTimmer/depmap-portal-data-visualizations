@@ -8,6 +8,7 @@ library(DT) # make datatables
 library(bslib) # used for layout/structuring of app
 library(shinyjqui) # make plots resizable
 library(ggplot2) # make plots
+library(bsicons)
 
 # Read paths to load saved R objects from pre-processing
 config <- yaml::read_yaml("..\\config.yaml")

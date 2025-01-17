@@ -4,7 +4,9 @@ ui <- page_fillable(
     
     page_navbar(
         
-        title = "DepMap Visualiser", sidebar = sidebar(width = 350,
+        title = "DepMap Visualiser",
+        sidebar = sidebar(width = 350,
+                                            
                                                        
                                                        
                                                        h4("Select parameters:"),
@@ -162,13 +164,6 @@ ui <- page_fillable(
                      )
                      ),
                      
-                     (nav_panel("About the data",
-                                "The data used in this application originates from the DepMap Portal which contains a lot of (expression)data on genes over different
-                                cancer cell lines. 
-                                https://depmap.org/portal/"
-                     )
-                     )
-                     
                  )
             ),
             
@@ -186,6 +181,11 @@ ui <- page_fillable(
             target = "_blank", 
             bsicons::bs_icon("github", size = "2rem")
         )
+        ), 
+        
+        footer = tags$footer(
+            style = "text-align: center;",
+            "© Yamila Timmer 2025"
         )
         
     )

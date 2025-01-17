@@ -29,15 +29,15 @@ server <- function(input, output, session) {
                     selected = "Acute Myeloid Leukemia")
     
     selectize_input(ID = 'sex', choices = unique(model$Sex), 
-                    selected = c("Female", "Male"))
+                    selected = c("Female", "Male", "Unknown"))
     
     selectize_input(ID = "race", choices = model$PatientRace, selected = 
                         c("caucasian", "asian", "black_or_african_american",
                           "african", "american_indian_or_native_american", 
-                          "east_indian", "north_african"))
+                          "east_indian", "north_african", "hispanic_or_latino", "unknown"))
     
     selectize_input(ID = "age_category", choices = model$AgeCategory, selected = 
-                        c("Fetus", "Pediatric", "Adult"))
+                        c("Fetus", "Pediatric", "Adult", "Unknown"))
     
     
     # Filters metadata based on input values
@@ -74,18 +74,19 @@ server <- function(input, output, session) {
         
         filtered_metadata <- filter_data(input)
         filtered_expr <- filter_expression(filtered_metadata, input)
-        merged <- merge(filtered_metadata[, c("ModelID", "StrippedCellLineName", 
-                                              "Sex", "PatientRace", "AgeCategory", 
-                                              "OncotreePrimaryDisease")], 
-                        filtered_expr, by = "ModelID", all = FALSE)
+        merged <- merge(filtered_metadata, 
+                        filtered_expr, 
+                        by = "ModelID", 
+                        all = FALSE)
+        
     }
     
     # Makes merged data reactive, so that plots will be rendered instantly if 
     # the contents of the merged data do not change
     reactive_merged <- reactive({
         
-        merge_data(filtered_metadata, filtered_expr)
-        
+        merged <- merge_data(filtered_metadata, filtered_expr)
+        print(merged)
     })
     
     
@@ -289,7 +290,7 @@ server <- function(input, output, session) {
         
         # Required merged to have atleast 1 row, prevents error from showing up
         req(nrow(merged) >= 1)
-        
+
         # Displays only the columns the user has selected to display
         merged <- merged %>% select(matches(input$table_columns))
         

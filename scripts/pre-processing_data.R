@@ -1,6 +1,7 @@
 library(tidyr)
 library(yaml)
-
+library(dplyr)
+library(stringr)
 # Read file paths from yaml configuration file
 config <- yaml::read_yaml("config.yaml")
 
@@ -17,6 +18,11 @@ if (file.exists(config$expression_csv) && file.exists(config$model_csv)) {
        config$model_csv)
 }
 
+
+model$PatientRace[is.na(model$PatientRace)] <- "unknown"
+
+model <- model %>% 
+    mutate(across(where(is.character), str_trim))
 
 # Change colname from 'X' to 'ModelID', to make the merging process in the application easier
 colnames(expression_db)[1] <- "ModelID"

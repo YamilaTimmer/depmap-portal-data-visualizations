@@ -9,7 +9,7 @@ output:
     number_sections: true
 
 lang: en
-bibliography: DepMap.bib
+bibliography: references.bib
 ---
 
 
@@ -20,17 +20,6 @@ library(tidyr)
 library(plotly)
 library(naniar)
 ```
-
-# Tools
-
-|**Tool**       |**Version** |**Purpose**                               |**License**
-|------------|----------------------|--------------------------------------------|-----------------
-|[shiny]()||
-|[ggplot2]()||
-|[tidyr]()||
-|[plotly]()||
-|[naniar]()||
-
 
 
 # Data Exploration
@@ -104,9 +93,9 @@ In order to analyse the data, I first have to import the needed data files. The 
 In the following two code blocks I read in both .csv-files and save them as variables. I use read.csv to do so, because of the corresponding file type.
 
 ```{r}
-setwd("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\") # set working directory
+#setwd("C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\") # set working directory
 model <- read.csv("Model.csv", na.strings = "") 
-expression_db <- read.csv("OmicsExpressionProteinCodingGenesTPMLogp1.csv")
+expression_db <- read.csv("../OmicsExpressionProteinCodingGenesTPMLogp1.csv")
 ```
 
 
