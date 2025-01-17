@@ -85,7 +85,11 @@ admin 4151 {
 The standard port that the Shiny Server listens to is port 3838. 
 
 ### Server locations
-The location given for `site_dir`, is the part that will be hosted. So for my project I would have to move at least the `app`-directory (which contains functions.R, server.R, ui.R) into `/srv/shiny-server`. Other than that I can also add static files, such as the Exploratory Data Analysis (EDA), which can then be viewed as well (see [directory_index](hosting_plan.md#directory_index)).
+The location given for `site_dir`, is the part that will be hosted. So for my project I would have to move at least the `app`-directory (which contains functions.R, server.R, ui.R) into `/srv/shiny-server`. Other than that I can also add static files, such as the Exploratory Data Analysis (EDA), which can then be viewed as well (see [directory_index](hosting_plan.md#directory_index)). This can be done with:
+
+```bash
+sudo cp -r /path/to/repo /srv/shiny-server/
+```
 
 The location given for `log_dir`, is where log files will be saved. These include things such as error logs and access logs (details about requests that have been made to the server).
 
@@ -103,7 +107,54 @@ Having 10 concurrent users, without long loading times, seems very possible to m
 ### directory_index
 `directory_index` can be set with either `on` or `off`. If it is set to `on`, this means that if a user navigates to a URL that corresponds to a directory in the server (which is **not** the application itself), the user is able to see the contents of the directory, in a 'file viewer'. If directory_index is switched `off`, the user will get a 403 error code, which will not allow them to view the contents of the directory, which is useful in case of sensitive data/files. However, in this case, I am not working with sensitive data (the data used is accessible online), so I will keep `directory_index on;` unchanged.
 
+### Version control
+Over time, bugs will be fixed and new features might be added. This results in new versions of the app and/or contents within the repo. These would have to manually be copied to the server folder every time. This can be automised using Git hooks, specifically the `post-receive` hooks, seeing as I want the server to be updated **after** the repo has been updated (see img below displaying the types of git hooks). Git hooks are in the `.git/hooks` folder and can manually be changed, so for this to work, the `post-receive hook` in the .git folder would need to have some instructions for git to copy the updated app to the server directory, after every push.
+
+![](..\media\git_hooks.webp)
+
+## Using a proxy
+In order to make the app available as HTTP (80) or HTTPS (443), a reverse-proxy is needed. The reason being that I don't have the rights to bind a process to any port below 1024 (*"well-known ports"*). The reverse-proxy will then forward any request made from the domain to the to the local server. Either `nginx` or `apache` would work for this, however I am choosing for `apache`, seeing as apache is more suited for more complex/reactive apps. 
+
+### Installing apache
+
+```bash
+sudo apt-get install apache2
+sudo apt-get install libapache2-mod-proxy-html
+sudo apt-get install libxml2-dev
+```
+
+### Updating apache config files
+```bash
+sudo a2enmod proxy
+sudo a2enmod proxy_http
+sudo a2enmod proxy_wstunnel
+```
+
+### Proxy configuration
+After installing and updating apache, there needs to be a config file that tells the proxy how to do the websocket handling, HTTP handling and how to handle proxy requests. Below is an example of a proxy config file for apache that does all the aforementioned. 
+
+The number behind `VirtualHost` (80), tells the proxy what port to listen to. In this case HTTP was used, but for HTTPS the number can be changed to 443 (however additional SSL configuration will have to be done).
+
+```
+<VirtualHost *:80>
+
+  <Proxy *>
+    Allow from localhost
+  </Proxy>
+ 
+ RewriteEngine on
+ RewriteCond %{HTTP:Upgrade} =websocket
+ RewriteRule /(.*) ws://localhost:3838/$1 [P,L]
+ RewriteCond %{HTTP:Upgrade} !=websocket
+ RewriteRule /(.*) http://localhost:3838/$1 [P,L]
+ ProxyPass / http://localhost:3838/
+ ProxyPassReverse / http://localhost:3838/
+ ProxyRequests Off
+
+</VirtualHost>\
+```
+
 # Sources
 - Posit. (n.d.). Shiny Server Professional v1.5.22 Administrator’s Guide. https://docs.posit.co/shiny-server/
 - Posit. (2024, 26 april). Shiny Server v1.5.22.1017. https://posit.co/download/shiny-server/
-
+- Pylvainen, I. (2024, 2 juni). Running Shiny Server with a Proxy. https://support.posit.co/hc/en-us/articles/213733868-Running-Shiny-Server-with-a-Proxy
