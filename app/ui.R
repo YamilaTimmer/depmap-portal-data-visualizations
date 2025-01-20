@@ -6,45 +6,45 @@ ui <- page_fillable(
         
         title = "DepMap Visualiser",
         sidebar = sidebar(width = 350,
-                                            
-                                                       
-                                                       
-                                                       h4("Select parameters:"),
-                                                       
-                                                       # Input dropdown menus for all list variables
-                                                       
-                                                       accordion(  
-                                                           accordion_panel("Select gene",
-                                                                           selectizeInput('gene_name', 
-                                                                                          label = NULL, 
-                                                                                          choices = NULL, 
-                                                                                          multiple = TRUE
-                                                                           )),
-                                                           
-                                                           accordion_panel("Select cancer type",
-                                                                           selectizeInput("onco_type", 
-                                                                                          label = NULL, 
-                                                                                          choices = NULL, 
-                                                                                          multiple = TRUE
-                                                                           )),
-                                                           accordion_panel("Select other metadata",
-                                                                           selectizeInput("sex", 
-                                                                                          label = "Select sex", 
-                                                                                          choices = NULL, 
-                                                                                          multiple = TRUE),
-                                                                           
-                                                                           selectizeInput("race", 
-                                                                                          label = "Select race", 
-                                                                                          choices = NULL,
-                                                                                          multiple = TRUE),
-                                                                           
-                                                                           selectizeInput("age_category", 
-                                                                                          label = "Select age category", 
-                                                                                          choices = NULL, 
-                                                                                          multiple = TRUE),
-                                                                           
-                                                                           #actionButton("submit_button", label = "Apply settings")
-                                                           )))
+                          
+                          
+                          
+                          h4("Select parameters:"),
+                          
+                          # Input dropdown menus for all list variables
+                          
+                          accordion(  
+                              accordion_panel("Select gene",
+                                              selectizeInput('gene_name', 
+                                                             label = NULL, 
+                                                             choices = NULL, 
+                                                             multiple = TRUE
+                                              )),
+                              
+                              accordion_panel("Select cancer type",
+                                              selectizeInput("onco_type", 
+                                                             label = NULL, 
+                                                             choices = NULL, 
+                                                             multiple = TRUE
+                                              )),
+                              accordion_panel("Select other metadata",
+                                              selectizeInput("sex", 
+                                                             label = "Select sex", 
+                                                             choices = NULL, 
+                                                             multiple = TRUE),
+                                              
+                                              selectizeInput("race", 
+                                                             label = "Select race", 
+                                                             choices = NULL,
+                                                             multiple = TRUE),
+                                              
+                                              selectizeInput("age_category", 
+                                                             label = "Select age category", 
+                                                             choices = NULL, 
+                                                             multiple = TRUE),
+                                              
+                                              #actionButton("submit_button", label = "Apply settings")
+                              )))
         ,
         
         
@@ -110,7 +110,12 @@ ui <- page_fillable(
                                            checkboxInput("individual_points_checkbox", 
                                                          label = "Show individual points?", 
                                                          value = TRUE
-                                           )
+                                           ),
+                                           
+                                           checkboxInput("merge_genes_checkbox", 
+                                                         label = "Merge genes?", 
+                                                         value = FALSE
+                                           ),
                                        )
                                    ),
                                    

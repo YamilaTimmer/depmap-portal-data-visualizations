@@ -64,6 +64,7 @@ server <- function(input, output, session) {
         
         return(filtered_expr)
         
+        
     }
     
     
@@ -86,7 +87,6 @@ server <- function(input, output, session) {
     reactive_merged <- reactive({
         
         merged <- merge_data(filtered_metadata, filtered_expr)
-        print(merged)
     })
     
     
@@ -104,36 +104,24 @@ server <- function(input, output, session) {
         req(nrow(merged) >= 1)
         
         
-        # If-statement for user-chosen fill parameter, the generated barplot
-        # will be coloured according to the parameter. e.g. "Sex" will result in 
-        # red bars for "Female" and blue bars for "Male".
-        if (input$barplot_parameter == "Sex") {
-            fill <- merged$Sex
-            fill_label <- "Sex"
-            
-        }
+        # Fill list, parameter is assigned to corresponding UI option
+        fill_list <- list(
+            "Sex" = merged$Sex,
+            "Race" = merged$PatientRace,
+            "Age Category" = merged$AgeCategory,
+            "Cancer Type" = merged$OncotreePrimaryDisease
+        )
         
-        else if (input$barplot_parameter == "Race") {
-            fill <- merged$PatientRace
-            fill_label <- "Race"
-            
-        }
+        fill = fill_list[[input$barplot_parameter]]
         
-        else if (input$barplot_parameter == "Age Category") {
-            fill <- merged$AgeCategory
-            fill_label <- "Age Category"
-            
-        }
+        # Will give same legend same label as chosen option
+        fill_label <- input$barplot_parameter
         
-        else if (input$barplot_parameter == "Cancer Type") {
-            fill <- merged$OncotreePrimaryDisease
-            fill_label <- "Cancer Type"
-            
-        }
         
         # If-statement that, based on user input, decides what parameter gets
         # used for the x-axis/facet-wrap (gene or cell line)
         if (input$barplot_x_axis_parameter == "Gene") {
+            
             
             # Sorts cell line names on expression from high to low, only shows 
             # when only one gene is selected
@@ -148,17 +136,13 @@ server <- function(input, output, session) {
             if (length(merged$gene) > 1) {
                 
                 # Facet wrap to display multiple bar plots of each of the chosen genes
-                barplot_per_gene <- generate_barplot(merged, merged$StrippedCellLineName, 
-                                                     fill, fill_label) + 
-                    facet_wrap( ~ merged$gene) +
-                    ylab("Tumor Cell Line")
+                barplot_per_gene <- barplot_per_gene + facet_wrap( ~ merged$gene)
             }
         }
         
         else if (input$barplot_x_axis_parameter == "Cell line") {
-            y = reorder(merged$gene, merged$expression)
             
-            barplot_per_gene <- generate_barplot(merged, y, fill, fill_label) + 
+            barplot_per_gene <- generate_barplot(merged, merged$gene, fill, fill_label) + 
                 ylab("Gene")
             
             # Facet wrap to display multiple bar plots of each of the corresponding 
@@ -166,9 +150,7 @@ server <- function(input, output, session) {
             if (length(merged$StrippedCellLineName) > 1) {
                 
                 # Facet wrap to display multiple bar plots of each of the chosen cell lines
-                barplot_per_gene <- generate_barplot(merged, merged$gene, fill, fill_label) + 
-                    facet_wrap( ~ merged$StrippedCellLineName) +
-                    ylab("Gene")
+                barplot_per_gene <- barplot_per_gene + facet_wrap( ~ merged$StrippedCellLineName)
             }
         }
     })
@@ -194,59 +176,64 @@ server <- function(input, output, session) {
             text_angle <- 0
         }
         
-        # If-statement for user-chosen x-axis parameter, one boxplot/violinplot
-        # will be shown per parameter, e.g. "Sex" will give one "Female" and one 
-        # "Male" boxplot, showing difference in gene expression between sexes.
-        if (input$boxplot_parameter == "Sex"){
-            
-            parameter <- merged$Sex
-            xlab <- "Sex"
-        }
         
-        else if (input$boxplot_parameter == "Race"){
-            
-            parameter <- merged$PatientRace
-            xlab <- "Race" 
-        }
+        # Parameter list, parameter is assigned to corresponding UI option
         
-        else if (input$boxplot_parameter == "Age Category"){
-            
-            parameter <- merged$AgeCategory
-            xlab <- "Age Category" 
-        }
+        parameter_list <- list(
+            "Sex" = merged$Sex,
+            "Race" = merged$PatientRace,
+            "Age Category" = merged$AgeCategory,
+            "Cancer Type" = merged$OncotreePrimaryDisease
+        )
         
-        else if (input$boxplot_parameter == "Cancer Type"){
-            
-            parameter <- merged$OncotreePrimaryDisease
-            xlab <- "Cancer Type" 
-        }
+        parameter = parameter_list[[input$boxplot_parameter]]
         
         # Will give same label to legend as to x-axis
-        fill_label <- xlab
+        fill_label <- input$boxplot_parameter
+        xlab <- input$boxplot_parameter
+        
+        boxplot_per_gene <- generate_box_plot(merged, parameter, text_angle, xlab, fill_label)
         
         # If-statement for the two checkboxes, one where the user selects boxplot 
         # or violinplot and one where the user selects to (not) show individual points in the plot
-        if (input$boxplot_violinplot == "Boxplot" && input$individual_points_checkbox != TRUE) {
+        if (input$boxplot_violinplot == "Boxplot") {
             
-            boxplot_per_gene <- generate_box_plot(merged, parameter, text_angle, xlab, fill_label) + geom_boxplot()
+            boxplot_per_gene <- boxplot_per_gene + geom_boxplot()
             
         }
         
-        else if (input$boxplot_violinplot == "Violin plot" && input$individual_points_checkbox != TRUE) {
+        else if (input$boxplot_violinplot == "Violin plot") {
             
-            boxplot_per_gene <- generate_box_plot(merged, parameter, text_angle, xlab, fill_label)  + geom_violin()
             
-        }
-        else if (input$boxplot_violinplot == "Boxplot" && input$individual_points_checkbox == TRUE) {
+            boxplot_per_gene <- boxplot_per_gene  + geom_violin()
             
-            boxplot_per_gene <- generate_box_plot(merged, parameter, text_angle, xlab, fill_label) + geom_boxplot() + geom_point() 
             
         }
-        else if (input$boxplot_violinplot == "Violin plot" && input$individual_points_checkbox == TRUE) {
+        
+        else {
+            # No further options have been implemented as of yet
+        }
+        
+        if (input$individual_points_checkbox == TRUE) {
             
-            boxplot_per_gene <- generate_box_plot(merged, parameter, text_angle, xlab, fill_label) + geom_violin() + geom_point() 
+            boxplot_per_gene <- boxplot_per_gene + geom_point()
+        }
+        
+        else {
+            
+            boxplot_per_gene
             
         }
+        
+        if (input$merge_genes_checkbox == FALSE) {
+            boxplot_per_gene <- boxplot_per_gene + facet_wrap(~ gene)
+        }
+        
+        else {
+            
+            boxplot_per_gene
+        }
+        
         
     })
     
@@ -290,7 +277,7 @@ server <- function(input, output, session) {
         
         # Required merged to have atleast 1 row, prevents error from showing up
         req(nrow(merged) >= 1)
-
+        
         # Displays only the columns the user has selected to display
         merged <- merged %>% select(matches(input$table_columns))
         
