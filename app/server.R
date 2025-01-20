@@ -53,7 +53,6 @@ server <- function(input, output, session) {
         
     }
     
-    
     # Filters expression data based on filtered metadata and input
     filter_expression <- function(filtered_metadata, input) {
         filtered_expr <- tidy_expression %>%
@@ -63,7 +62,6 @@ server <- function(input, output, session) {
             )
         
         return(filtered_expr)
-        
         
     }
     
@@ -117,7 +115,6 @@ server <- function(input, output, session) {
         # Will give same legend same label as chosen option
         fill_label <- input$barplot_parameter
         
-        
         # If-statement that, based on user input, decides what parameter gets
         # used for the x-axis/facet-wrap (gene or cell line)
         if (input$barplot_x_axis_parameter == "Gene") {
@@ -153,6 +150,7 @@ server <- function(input, output, session) {
                 barplot_per_gene <- barplot_per_gene + facet_wrap( ~ merged$StrippedCellLineName)
             }
         }
+
     })
     
     
@@ -176,9 +174,7 @@ server <- function(input, output, session) {
             text_angle <- 0
         }
         
-        
         # Parameter list, parameter is assigned to corresponding UI option
-        
         parameter_list <- list(
             "Sex" = merged$Sex,
             "Race" = merged$PatientRace,
@@ -186,54 +182,22 @@ server <- function(input, output, session) {
             "Cancer Type" = merged$OncotreePrimaryDisease
         )
         
+        # Assign parameter, based on input
         parameter = parameter_list[[input$boxplot_parameter]]
         
-        # Will give same label to legend as to x-axis
+        # Assign arguments using the application input
         fill_label <- input$boxplot_parameter
         xlab <- input$boxplot_parameter
+        boxplot_violinplot <- input$boxplot_violinplot
+        individual_points_checkbox <- input$individual_points_checkbox
+        merge_genes_checkbox <- input$merge_genes_checkbox
         
-        boxplot_per_gene <- generate_box_plot(merged, parameter, text_angle, xlab, fill_label)
-        
-        # If-statement for the two checkboxes, one where the user selects boxplot 
-        # or violinplot and one where the user selects to (not) show individual points in the plot
-        if (input$boxplot_violinplot == "Boxplot") {
-            
-            boxplot_per_gene <- boxplot_per_gene + geom_boxplot()
-            
-        }
-        
-        else if (input$boxplot_violinplot == "Violin plot") {
-            
-            
-            boxplot_per_gene <- boxplot_per_gene  + geom_violin()
-            
-            
-        }
-        
-        else {
-            # No further options have been implemented as of yet
-        }
-        
-        if (input$individual_points_checkbox == TRUE) {
-            
-            boxplot_per_gene <- boxplot_per_gene + geom_point()
-        }
-        
-        else {
-            
-            boxplot_per_gene
-            
-        }
-        
-        if (input$merge_genes_checkbox == FALSE) {
-            boxplot_per_gene <- boxplot_per_gene + facet_wrap(~ gene)
-        }
-        
-        else {
-            
-            boxplot_per_gene
-        }
-        
+        # Call function with arguments to generate the plot
+        boxplot_per_gene <- generate_box_plot(merged, parameter, text_angle, 
+                                              xlab, fill_label, 
+                                              boxplot_violinplot, 
+                                              individual_points_checkbox,
+                                              merge_genes_checkbox)
         
     })
     

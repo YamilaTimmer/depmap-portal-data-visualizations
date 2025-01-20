@@ -8,10 +8,10 @@ library(DT) # make datatables
 library(bslib) # used for layout/structuring of app
 library(shinyjqui) # make plots resizable
 library(ggplot2) # make plots
-library(bsicons)
+library(bsicons) # for clickable github icon
 
 # Read paths to load saved R objects from pre-processing
-config <- yaml::read_yaml("..\\config.yaml")
+config <- yaml::read_yaml("../config/config.yaml")
 
 load(config$expression_rdata)
 load(config$model_rdata)
@@ -31,17 +31,16 @@ load(config$model_rdata)
 #' generate_barplot(merged, merged$AgeCategory)
 
 generate_barplot <- function(data, y, fill, fill_label){
-  
-  ggplot(data = data, 
-         aes(x = expression,
-             y = y,
-             fill = fill)) +
-    geom_bar(stat = "identity") + 
-    ylab("Tumor Cell Line") +
-    xlab("Expression level (log2 TPM)") +
-    labs(fill = fill_label) +
-    theme_minimal() 
-  
+    
+    ggplot(data = data, 
+           aes(x = expression,
+               y = y,
+               fill = fill)) +
+        geom_bar(stat = "identity") + 
+        ylab("Tumor Cell Line") +
+        xlab("Expression level (log2 TPM)") +
+        labs(fill = fill_label) +
+        theme_minimal()
 }
 
 
@@ -61,17 +60,52 @@ generate_barplot <- function(data, y, fill, fill_label){
 #' @examples
 #' generate_box_plot(merged, parameter, text_angle, xlab) + geom_boxplot()
 
-generate_box_plot <- function(data, parameter, text_angle, xlab, fill_label){
-  
-  ggplot(data = data,
-         aes(x = parameter, 
-             y = expression,
-             fill = parameter)) +
-    labs(x = xlab, 
-         y = "Expression level(log2 TPM)") + 
-    labs(fill = fill_label) +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = text_angle)) # Rotate gene names x-axis
+generate_box_plot <- function(data, parameter, text_angle, xlab, fill_label, 
+                              boxplot_violinplot, individual_points_checkbox, 
+                              merge_genes_checkbox){
+    
+    plot <- ggplot(data = data,
+                   aes(x = parameter, 
+                       y = expression,
+                       fill = parameter)) +
+        labs(x = xlab, 
+             y = "Expression level(log2 TPM)") + 
+        labs(fill = fill_label) +
+        theme_minimal() + 
+        theme(axis.text.x = element_text(angle = text_angle)) # Rotate gene names x-axis
+    
+    # If-statement for the two checkboxes, one where the user selects boxplot 
+    # or violinplot and one where the user selects to (not) show individual points in the plot
+    if (boxplot_violinplot == "Boxplot") {
+        
+        plot <- plot + geom_boxplot()
+        
+    }
+    
+    else {
+        
+        plot <- plot + geom_violin()
+    }
+    
+    
+    if (individual_points_checkbox == TRUE) {
+        
+        plot <- plot + geom_point()
+    }
+    
+    else {
+        plot
+    }
+    
+    if (merge_genes_checkbox == FALSE) {
+        plot + facet_wrap(~ gene)
+    }
+    
+    else {
+        
+        plot
+    }
+    
 }
 
 
@@ -90,18 +124,18 @@ generate_box_plot <- function(data, parameter, text_angle, xlab, fill_label){
 #' generate_heatmap(merged, -90, "Blues")
 
 generate_heatmap <- function(data, text_angle, palette){
-  
-  ggplot(data = data, 
-         aes(x = gene, 
-             y = StrippedCellLineName, 
-             fill = expression)) +
-    geom_tile() + 
-    ylab("Tumor Cell Line") +
-    xlab("Gene") +
-    labs(fill = "Expression level (log2 TPM)") +
-    theme_minimal() + 
-    theme(axis.text.x = element_text(angle = text_angle)) +
-    scale_fill_distiller(palette = palette)
+    
+    ggplot(data = data, 
+           aes(x = gene, 
+               y = StrippedCellLineName, 
+               fill = expression)) +
+        geom_tile() + 
+        ylab("Tumor Cell Line") +
+        xlab("Gene") +
+        labs(fill = "Expression level (log2 TPM)") +
+        theme_minimal() + 
+        theme(axis.text.x = element_text(angle = text_angle)) +
+        scale_fill_distiller(palette = palette)
 }
 
 
@@ -117,7 +151,7 @@ generate_heatmap <- function(data, text_angle, palette){
 #' @examples
 #' create_link(gene)
 create_link <- function(gene) {
-  paste0("<a href='https://www.genecards.org/cgi-bin/carddisp.pl?gene=", gene, 
-         "' target='_blank'>", gene, "</a>") # target = '_blank' has to be added, 
+    paste0("<a href='https://www.genecards.org/cgi-bin/carddisp.pl?gene=", gene, 
+           "' target='_blank'>", gene, "</a>") # target = '_blank' has to be added, 
     #to prevent the app from refreshing when a hyperlink is clicked.
 }
