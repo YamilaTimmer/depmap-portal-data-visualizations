@@ -137,12 +137,15 @@ Using the download buttons, the data can be saved as either a comma-seperated-va
 
 # Examples of visualisations
 Bar Plot
+
 ![Example of a barplot, generated with the application](media/example_barplot.png)
 
 Boxplot/violinplot
+
 ![Example of a boxplot, generated with the application](media/example_boxplot.png)
 
 Heatmap
+
 ![Example of a heatmap, generated with the application](media/example_heatmap.png)
 
 ## Support
