@@ -148,6 +148,13 @@ Heatmap
 
 ![Example of a heatmap, generated with the application](media/example_heatmap.png)
 
+## Testing
+Functions (specifically the pre-processing_data functions) can be found here and can be ran using:
+
+```r
+testthat::test_dir("tests/testthat")
+```
+
 ## Support
 In case of any bugs or needed support, open up an issue at [my repo](https://github.com/YamilaTimmer/depmap-portal-data-visualizations/issues).
 
