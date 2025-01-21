@@ -140,13 +140,23 @@ Bar Plot
 
 ![Example of a barplot, generated with the application](media/example_barplot.png)
 
-Boxplot/violinplot
+Plot description: what can be seen here, is a bar plot visualising the difference in gene expression of the gene TSPAN6, across different cell lines. The colors indicate from
+what type of cancer the cell lines stem. The y-axis shows the cell line and the x-axis shows the expression (log2 TPM).
+
+Boxplot
 
 ![Example of a boxplot, generated with the application](media/example_boxplot.png)
+
+Plot description: these boxplots show the difference in expression of a gene, per cancer type. The colors indicate the type of cancer, as also is indicated on the x-axis.
+The y-axis shows the gene expression (log2 TPM) of, in this case, 3 different genes (C1orf112, DPM1, TSPAN6).
+
 
 Heatmap
 
 ![Example of a heatmap, generated with the application](media/example_heatmap.png)
+
+Plot description: this heatmap shows an overview of the expression of a gene per cell line, on the right the color scale can be seen. Purple indicates high gene expression and
+green indicates low gene expression. 
 
 ## Testing
 Functions (specifically the pre-processing_data functions) can be found here and can be ran using:
