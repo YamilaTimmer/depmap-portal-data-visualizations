@@ -33,6 +33,8 @@ Navigate to the top of the page and enter the two dataset names in the search ba
 
 ![Where to download the data](media/download_data.png)
 
+![How to download the data](media/download_data_2.png)
+
 
 **Clone the repository**
 
@@ -134,10 +136,10 @@ View the data that is generated for the selected parameters, in the table on the
 
 The data can be sorted by clicking the arrows next to the column names (from high-low or low-high) and by clicking the gene names a new window will open with a link to [https://www.genecards.org/](https://www.genecards.org/) with the page corresponding to the selected gene, for more information about the gene.
 
-![The table tab](media/data_info.PNG)
-
 ### Saving the data
 Using the download buttons, the data can be saved as either a comma-seperated-value (.csv) file, or an excel file (.xslx)
+
+![The table tab](media/data_info.PNG)
 
 # How to interpret the data
 ## Background info
@@ -148,14 +150,14 @@ A gene is a piece of DNA that codes for a protein. **Gene expression** means how
 
 The **cell lines** refers to populations of cells that are derived from patients with different types of cancer. Which allows for 'in vitro' research, which is done outside of the patient, which has the benefit that it can be studied without potentially harming the patient. Information about the cell lines can be found in `Model.csv`. 
 
-# Examples of visualisations
-Bar Plot
+## Examples of visualisations
+### Bar Plot
 
 ![Example of a barplot, generated with the application](media/example_barplot.png)
 
 **Plot description**: what can be seen here, is a bar plot visualising the difference in gene expression of the gene TSPAN6, across different cell lines. The colors indicate from what type of cancer the cell lines stem. The y-axis shows the cell line and the x-axis shows the expression (log2 TPM). 
 
-Boxplot
+### Boxplot
 
 ![Example of a boxplot, generated with the application](media/example_boxplot.png)
 
@@ -163,7 +165,7 @@ Boxplot
 The y-axis shows the gene expression (log2 TPM) of, in this case, 3 different genes (C1orf112, DPM1, TSPAN6).
 
 
-Heatmap
+### Heatmap
 
 ![Example of a heatmap, generated with the application](media/example_heatmap.png)
 

@@ -34,7 +34,7 @@ ui <- page_fillable(
                                                              multiple = TRUE),
                                               
                                               selectizeInput("race", 
-                                                             label = "Select race", 
+                                                             label = "Select ethnic background", 
                                                              choices = NULL,
                                                              multiple = TRUE),
                                               
