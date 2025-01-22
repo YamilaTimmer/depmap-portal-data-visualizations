@@ -150,6 +150,36 @@ A gene is a piece of DNA that codes for a protein. **Gene expression** means how
 
 The **cell lines** refers to populations of cells that are derived from patients with different types of cancer. Which allows for 'in vitro' research, which is done outside of the patient, which has the benefit that it can be studied without potentially harming the patient. Information about the cell lines can be found in `Model.csv`. 
 
+## Recommended genes to inspect
+
+As mentioned above, tumor suppressor genes and oncogenes could be interesting to look at, due to the vital role they play in cancer. There are many known oncogenes and tumor suppressor genes, in the tables below you can find (some of) these genes, as inspiration for visualising relationships between certain types of cancer and specific genes.
+
+| Gene name (tumor suppressor)  | Types of Cancer |
+|------------|-----------------|
+| APC        | Colon cancer            |
+| BRCA1      | Breast cancer, pancreatic cancer, ovarian cancer        |
+| BRCA2      | Breast cancer, ovarian cancer               |
+| CDH1       | Stomach cancer, breast cancer              |
+| CDKN2A     | Pancreatic cancer, melanoma                |
+| MEN1       | Thymus cancer, pancreatic cancer, duodenal cancer             |
+| NF1        | Brain tumor, leukemia, breast cancer                |
+| PTEN       | Glioblastoma, lung cancer, breast cancer, prostate cancer              |
+| SMAD4      | Gastrointestinal cancer                 |
+| TP53       | Ovarian cancer, esophageal cancer, colorectal cancer, lung cancer                |
+
+
+| Gene name (oncogene)  | Types of Cancer |
+|------------|-----------------|
+| HER2        | Breast cancer                |
+| BCR/ABL1       | Chronic myeloid leukemia, B-cell acute lymphocytic leukemia       |
+| CMYC        | Burkitt lymphoma            |
+| NMYC      | Small cell lung cancer,  neuroblastoma               |
+| EGFR/EML4AK        | Adenocarcinoma of the lung            |
+| KRAS        | Pancreatic cancer,  lung cancer        |
+
+> **Source**: [Cleveland Clinic](https://my.clevelandclinic.org/health/body/24949-oncogenes) 
+
+
 ## Examples of visualisations
 ### Bar Plot
 
