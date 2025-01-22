@@ -4,15 +4,15 @@
 
 - Yamila Timmer ([https://github.com/YamilaTimmer](https://github.com/YamilaTimmer))
 
-
 ## Description
 
-The [Dependency Map](https://depmap.org/portal/) (DepMap) portal offers large batches of open-access cancer research data, in order to support new scientific discoveries within the field. However visualising large amounts of data has proven to be difficult. DepMap Visualiser is a tool that allows users to visualise DepMap data in various ways, such as barplots, boxplots and heatmaps. Users can do all of this while filtering on specific metadata to include/exclude the data, as the user wishes.
-
+The [Dependency Map](https://depmap.org/portal/) (DepMap) portal offers large batches of open-access cancer research data, in order to support new scientific discoveries within the field. However visualising large amounts of data has proven to be difficult. DepMap Visualiser is a tool that allows users to visualise DepMap data in various ways, including barplots, boxplots, violin plots and heatmaps. Users can do all of this while filtering on specific metadata to include/exclude the data, as the user wishes. For more background information or for more information on how to interpret the plots generated in this application, please see [# How to interpret the data](README.md#how-to-interpret-the-data).
 
 ### Key-features
 - Visualise large batches of DepMap data,
 - Allows selecting different metadata parameters, to fine-tune data,
+- Generating plots with the data, including bar plots, boxplots, violinplots and heatmaps,
+- Generating sortable tables with the filtered data,
 - The ability to save the generated visuals (.png) and the table data (.csv/.xlsx),
 - User-friendly dashboard interface.
 
@@ -132,22 +132,34 @@ After selecting the parameters, the side bar can be collapsed to allow more spac
 ## Explore data
 View the data that is generated for the selected parameters, in the table on the right side. The datatable can be viewed in full screen by pressing the 'expand' button in the bottom right of the tab. What columns will be displayed can be chosen in the column selector at the top. The data can be sorted on columns from low/high, or you can perform do a specific search using the search bar in the top right. Additional metadata can be viewed in the table, by choosing additional columns in the column selector. A short description for all columns can be found in the [appendix](README.md#appendix). Keep in mind, some columns have a lot of missing values (NA values). 
 
+The data can be sorted by clicking the arrows next to the column names (from high-low or low-high) and by clicking the gene names a new window will open with a link to [https://www.genecards.org/](https://www.genecards.org/) with the page corresponding to the selected gene, for more information about the gene.
+
+![The table tab](media/data_info.PNG)
+
 ### Saving the data
 Using the download buttons, the data can be saved as either a comma-seperated-value (.csv) file, or an excel file (.xslx)
+
+# How to interpret the data
+## Background info
+
+This application shows gene expression over cell lines and can be used to interpret certain relations between gene expression and different cancer types. The application also allows filtering on age category, sex and ethnic background, so relations might also be found. Please see the [appendix](README.md#appendix) or the application for all possible options within these filters.
+
+A gene is a piece of DNA that codes for a protein. **Gene expression** means how much a gene is transcripted to RNA and then translated to a protein. The more this occurs, the higher a gene is expressed. Cancer can be linked to gene expression. For example, certain genes that prevent cancer (tumor-suppressor genes) might not be expressed as much in patients with cancer. It also works the other way around, genes that can cause cancer (oncogenes) are often seen in higher expression levels in patients with cancer. The expression of the genes can be found in `OmicsExpressionProteinCodingGenesTPMLogp1.csv`.
+
+The **cell lines** refers to populations of cells that are derived from patients with different types of cancer. Which allows for 'in vitro' research, which is done outside of the patient, which has the benefit that it can be studied without potentially harming the patient. Information about the cell lines can be found in `Model.csv`. 
 
 # Examples of visualisations
 Bar Plot
 
 ![Example of a barplot, generated with the application](media/example_barplot.png)
 
-Plot description: what can be seen here, is a bar plot visualising the difference in gene expression of the gene TSPAN6, across different cell lines. The colors indicate from
-what type of cancer the cell lines stem. The y-axis shows the cell line and the x-axis shows the expression (log2 TPM).
+**Plot description**: what can be seen here, is a bar plot visualising the difference in gene expression of the gene TSPAN6, across different cell lines. The colors indicate from what type of cancer the cell lines stem. The y-axis shows the cell line and the x-axis shows the expression (log2 TPM). 
 
 Boxplot
 
 ![Example of a boxplot, generated with the application](media/example_boxplot.png)
 
-Plot description: these boxplots show the difference in expression of a gene, per cancer type. The colors indicate the type of cancer, as also is indicated on the x-axis.
+**Plot description**: these boxplots show the difference in expression of a gene, per cancer type. The colors indicate the type of cancer, as also is indicated on the x-axis.
 The y-axis shows the gene expression (log2 TPM) of, in this case, 3 different genes (C1orf112, DPM1, TSPAN6).
 
 
@@ -155,8 +167,8 @@ Heatmap
 
 ![Example of a heatmap, generated with the application](media/example_heatmap.png)
 
-Plot description: this heatmap shows an overview of the expression of a gene per cell line, on the right the color scale can be seen. Purple indicates high gene expression and
-green indicates low gene expression. 
+**Plot description**: this heatmap shows an overview of the expression of a gene per cell line, on the right the color scale can be seen. Purple indicates high gene expression and
+green indicates low gene expression.
 
 ## Testing
 Functions (specifically the pre-processing_data functions) can be found here and can be ran using:
