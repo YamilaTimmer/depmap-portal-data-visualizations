@@ -1,7 +1,6 @@
 library(tidyr)
 library(yaml)
 
-
 #' Read files
 #'
 #' This function loads the file paths from config.yaml and reads them with read.csv
@@ -10,10 +9,9 @@ library(yaml)
 #' @examples
 #' read_files()
 
-
 read_files <- function(config_path){
     
-    
+    # Checks if config file exists
     if (file.exists(config_path)){
         
         # Read file paths from yaml configuration file
@@ -30,12 +28,11 @@ read_files <- function(config_path){
     # Gives error if there are less than 4 items in config, the 4 needed keys
     # are the locations from where to load the two csv files and the locations
     # where to save the rdata files to
-    if (length(config) != 4 || !all(c("expression_csv", "model_csv", "expression_rdata", "model_rdata") %in% names(config))){
+    if (length(config) != 4 || !all(c("expression_csv", "model_csv", "expression_rdata", "model_rdata") 
+                                    %in% names(config))){
         
         stop("Missing/incorrect keys in yaml.config, the 4 keys that are needed are: expression_csv, model_csv, expression_rdata, model_rdata")
     }
-    
-    
     
     # Will read the files if the paths exist
     if (file.exists(config$expression_csv) && file.exists(config$model_csv)) {
@@ -55,9 +52,7 @@ read_files <- function(config_path){
                 model = model, 
                 expression_db = expression_db))
     
-    
 }
-
 
 
 #' Prepare data
@@ -73,7 +68,7 @@ read_files <- function(config_path){
 
 prepare_data <- function(model, expression_db){
     
-    
+    # Gives error if "ModelID" column is missing from model.csv
     if (!"ModelID" %in% names(model)) {
         stop("The ModelID column is missing from the model.csv file.")
     }
@@ -113,6 +108,7 @@ prepare_data <- function(model, expression_db){
 
 tidy_data <- function(expression_db){
     
+    # Gives error if datatype of expression_db is anything other than a dataframe
     if (!is.data.frame(expression_db)){
         
         stop("Invalid format, expression has to be in a dataframe")
@@ -121,11 +117,13 @@ tidy_data <- function(expression_db){
     
     else {
         
-        
+        # Gives error if there is any NA values found in expression_db
         if (any(is.na(expression_db))){
             
             stop("NA values found in expression data")
         }
+        
+        # Converts dataframe to tidy format
         tidy_expression <- expression_db %>% 
             pivot_longer(
                 cols = 2:ncol(expression_db),
