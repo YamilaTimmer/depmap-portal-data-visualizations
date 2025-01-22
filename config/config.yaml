@@ -1,7 +1,7 @@
-# Change to the paths where the downloaded expression- and model datasets have been saved on your computer
-expression_csv: "C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\OmicsExpressionProteinCodingGenesTPMLogp1.csv"
-model_csv: "C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\Model.csv"
+# Change to the paths where the downloaded expression- and model datasets have been saved on your computer. Please do not alter the variable names (expression_csv, model_csv)
+expression_csv: "path/to/OmicsExpressionProteinCodingGenesTPMLogp1.csv"
+model_csv: "path/to/Model.csv"
 
-# Change to the paths where you want the R data objects to be saved on your computer
-expression_rdata: "C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\tidy_expression.Rdata"
-model_rdata: "C:\\Users\\yamil\\OneDrive - Hanze\\Bio-informatica\\Jaar 2\\2.1 applicatie\\goede_git\\model.Rdata"
+# Change to the paths where you want the R data objects to be saved on your computer. Please do not alter the variable names (expression_rdata, model_rdata)
+expression_rdata: "path/to/tidy_expression.Rdata"
+model_rdata: "path/to/model.Rdata"
