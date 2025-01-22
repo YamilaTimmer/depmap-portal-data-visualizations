@@ -6,7 +6,14 @@
 
 ## Description
 
-The [Dependency Map](https://depmap.org/portal/) (DepMap) portal offers large batches of open-access cancer research data, in order to support new scientific discoveries within the field. However visualising large amounts of data has proven to be difficult. DepMap Visualiser is a tool that allows users to visualise DepMap data in various ways, including barplots, boxplots, violin plots and heatmaps. Users can do all of this while filtering on specific metadata to include/exclude the data, as the user wishes. For more background information or for more information on how to interpret the plots generated in this application, please see [# How to interpret the data](README.md#how-to-interpret-the-data).
+The [Dependency Map](https://depmap.org/portal/) (DepMap) portal offers large batches of open-access cancer research data, in order to support new scientific discoveries within the field. The goal is tp map the 'landscape' of cancer vulnerabilities, through different approaches:
+
+- Capturing genetic and molecular diversity of human cancer, by gathering more than 2000 different models
+- Identifying genes that are required for cell growth and drug sensitivities
+- Creating a map of cancer vulnerabilities
+- Identifying genetic and molecular alterations in cancer cells
+
+If you would like to learn more about these running DepMap projects, I highly recommend you visit [their website](https://depmap.org/portal/home/#/our-approach). This data dashboard focusses mainly on the first and last pointer. It is able to compare metadata, cell lines, genes and gene expression. While visualising large amounts of data has proven to be difficult, DepMap Visualiser is a tool that allows users to visualise DepMap data in various ways, including barplots, boxplots, violin plots and heatmaps. Users can do all of this while filtering on specific metadata to include/exclude the data, as the user wishes. For more background information or for more information on how to interpret the plots generated in this application, please see [# How to interpret the data](README.md#how-to-interpret-the-data).
 
 ### Key-features
 - Visualise large batches of DepMap data,
@@ -91,7 +98,7 @@ Before the datasets can be used in the application, a little pre-processing will
 Next, run the R-script [pre-processing_data.R](https://github.com/YamilaTimmer/depmap-portal-data-visualizations/blob/main/scripts/pre-processing_data.R) (note: this step can take up to a few minutes, this is caused by the size of the dataset. This step will only have to be performed **once**):
 
 ```r
-source("path/to/pre-processing_data.R")
+source("scripts/pre-processing_data.R")
 ```
 
 ### Launch the app
