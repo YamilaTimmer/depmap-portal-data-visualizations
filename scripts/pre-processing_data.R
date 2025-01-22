@@ -13,28 +13,37 @@ library(yaml)
 
 read_files <- function(config_path){
     
-   
+    
     if (file.exists(config_path)){
         
         # Read file paths from yaml configuration file
         config <- yaml::read_yaml(config_path)
         
-    } 
-    
+    }
     else {
         
-
+        
         # Raises an error if config file does not exist
         stop("config.yaml file not found.")
     }
+    
+    # Gives error if there are less than 4 items in config, the 4 needed keys
+    # are the locations from where to load the two csv files and the locations
+    # where to save the rdata files to
+    if (length(config) != 4 || !all(c("expression_csv", "model_csv", "expression_rdata", "model_rdata") %in% names(config))){
+        
+        stop("Missing/incorrect keys in yaml.config, the 4 keys that are needed are: expression_csv, model_csv, expression_rdata, model_rdata")
+    }
+    
     
     
     # Will read the files if the paths exist
     if (file.exists(config$expression_csv) && file.exists(config$model_csv)) {
         expression_db <- read.csv(config$expression_csv)
+        
         model <- read.csv(config$model_csv, na.strings = "") 
         
-        }
+    }
     
     else {
         
@@ -45,7 +54,10 @@ read_files <- function(config_path){
     return(list(config = config, 
                 model = model, 
                 expression_db = expression_db))
+    
+    
 }
+
 
 
 #' Prepare data
@@ -60,6 +72,16 @@ read_files <- function(config_path){
 #' prepare_data(data$model, data$expression_db)
 
 prepare_data <- function(model, expression_db){
+    
+    
+    if (!"ModelID" %in% names(model)) {
+        stop("The ModelID column is missing from the model.csv file.")
+    }
+    
+    # Check if any row of ModelID is either NA or empty string
+    if (any(is.na(model$ModelID) | model$ModelID == "")) {
+        stop("The ModelID column in the model.csv file contains either missing or empty values.")
+    }
     
     # Rename all NA's for PatientRace column to "unknown", so they can be displayed in the app
     model$PatientRace[is.na(model$PatientRace)] <- "unknown"
@@ -91,12 +113,26 @@ prepare_data <- function(model, expression_db){
 
 tidy_data <- function(expression_db){
     
-    tidy_expression <- expression_db %>% 
-        pivot_longer(
-            cols = 2:ncol(expression_db),
-            names_to = "gene",
-            values_to = "expression"
-        )
+    if (!is.data.frame(expression_db)){
+        
+        stop("Invalid format, expression has to be in a dataframe")
+        
+    }
+    
+    else {
+        
+        
+        if (any(is.na(expression_db))){
+            
+            stop("NA values found in expression data")
+        }
+        tidy_expression <- expression_db %>% 
+            pivot_longer(
+                cols = 2:ncol(expression_db),
+                names_to = "gene",
+                values_to = "expression")
+        
+    }
     
     return(tidy_expression)
 }
