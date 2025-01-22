@@ -108,7 +108,7 @@ Having 10 concurrent users, without long loading times, seems very possible to m
 
 I looked into how much memory a running instance of my application uses. As seen in the image below, ~1.2Gb memory is being used while running the app, 869Mb of this being R objects, which is the data that gets loaded in when launching the app. Using scoping in Shiny can make it so that data will be shared across the server, so that it will only have to be loaded in once, and not for every individual user. Only 350Mb memory will have to be used per user then and 869Mb in total once across the server. 
 
-![The amound om memory being used by the app](images/data_usage.PNG)
+![The amount of memory being used by the app](media/data_usage.PNG)
 
 ### directory_index
 `directory_index` can be set with `on` or `off`. If it is set to `on`, this means that if a user navigates to a URL that corresponds to a directory in the server (which is **not** the application itself), the user can see the contents of the directory, in a 'file viewer'. If directory_index is switched `off`, the user will get a 403 error code, which will not allow them to view the contents of the directory, which is useful in case of sensitive data/files. For hosting this app I would choose to set `directory_index` to 'off', because turning it on could be risky in terms of security and because there is no reason for the users to look at any other files in the directory, other than the app. 
