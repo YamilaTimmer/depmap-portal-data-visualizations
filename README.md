@@ -6,19 +6,19 @@
 
 ## Description
 
-The [Dependency Map](https://depmap.org/portal/) (DepMap) portal offers large batches of open-access cancer research data, in order to support new scientific discoveries within the field. The goal is tp map the 'landscape' of cancer vulnerabilities, through different approaches:
+The [Dependency Map](https://depmap.org/portal/) (DepMap) portal offers large batches of open-access cancer research data, in order to support new scientific discoveries within the field. The goal is to map the 'landscape' of cancer vulnerabilities, through different approaches:
 
 - Capturing genetic and molecular diversity of human cancer, by gathering more than 2000 different models
 - Identifying genes that are required for cell growth and drug sensitivities
 - Creating a map of cancer vulnerabilities
 - Identifying genetic and molecular alterations in cancer cells
 
-If you would like to learn more about these running DepMap projects, I highly recommend you visit [their website](https://depmap.org/portal/home/#/our-approach). This data dashboard focusses mainly on the first and last pointer. It is able to compare metadata, cell lines, genes and gene expression. While visualising large amounts of data has proven to be difficult, DepMap Visualiser is a tool that allows users to visualise DepMap data in various ways, including barplots, boxplots, violin plots and heatmaps. Users can do all of this while filtering on specific metadata to include/exclude the data, as the user wishes. For more background information or for more information on how to interpret the plots generated in this application, please see [# How to interpret the data](README.md#how-to-interpret-the-data).
+If you would like to learn more about these running DepMap projects, I highly recommend you visit [their website](https://depmap.org/portal/home/#/our-approach). This data dashboard focuses mainly on the first and last pointer. It is able to compare metadata, cell lines, genes, and gene expression. While visualising large amounts of data has proven to be difficult, DepMap Visualiser is a tool that allows users to visualise DepMap data in various ways, including bar plots, boxplots, violin plots, and heatmaps. Users can do all of this while filtering on specific metadata to include/exclude the data, as the user wishes. For more background information and information on how to interpret the plots generated in this application, please see [# How to interpret the data](README.md#how-to-interpret-the-data).
 
 ### Key-features
 - Visualise large batches of DepMap data,
 - Allows selecting different metadata parameters, to fine-tune data,
-- Generating plots with the data, including bar plots, boxplots, violinplots and heatmaps,
+- Generating plots with the data, including bar plots, boxplots, violin plots and heatmaps,
 - Generating sortable tables with the filtered data,
 - The ability to save the generated visuals (.png) and the table data (.csv/.xlsx),
 - User-friendly dashboard interface.
@@ -81,7 +81,7 @@ The application is made using R version [4.4.2](https://cran.r-project.org/bin/w
 | [writexl](https://github.com/ropensci/writexl) | For converting dataframe to excel (.xslx)-format |1.5.1|
 | [shinycssloaders](https://github.com/daattali/shinycssloaders)| Used for adding loading icons in application |1.1.0|
 | [RColorBrewer](https://github.com/cran/RColorBrewer)| Used for adding color palettes to heat map  |1.1.3|
-| [DT](https://github.com/rstudio/DT)| Used for interactive datatable output in application |0.33|
+| [DT](https://github.com/rstudio/DT)| Used for interactive data table output in application |0.33|
 | [bslib](https://github.com/rstudio/bslib/) | Used for layout/structuring of application  |0.8.0|
 | [shinyjqui](https://github.com/Yang-Tang/shinyjqui)| Used for making plots resizable |0.4.1|
 | [ggplot2](https://github.com/tidyverse/ggplot2)| Used for making all plots (bar plot, boxplot, violin plot, heatmap)|3.5.1|
@@ -93,7 +93,7 @@ The application is made using R version [4.4.2](https://cran.r-project.org/bin/w
 
 ### Pre-processing
 
-Before the datasets can be used in the application, a little pre-processing will have to take place. First, open [config.yaml](https://github.com/YamilaTimmer/depmap-portal-data-visualizations/blob/main/config/config.yaml) and change the paths for expression_csv and model_csv to the paths where the datasets have been saved on your computer. Next choose where you want the resulting R data objects to be saved on your pc. This will be the same path that is used for retrieving the data again for the app, so make sure to not move the data afterwards, or change the path accordingly!
+Before the datasets can be used in the application, a little pre-processing will have to take place. First, open [config.yaml](https://github.com/YamilaTimmer/depmap-portal-data-visualizations/blob/main/config/config.yaml) and change the paths for expression_csv and model_csv to the paths where the datasets have been saved on your computer. Next, choose where you want the resulting R data objects to be saved on your pc. This will be the same path that is used for retrieving the data again for the app, so make sure to not move the data afterwards, or change the path accordingly!
 
 Next, run the R-script [pre-processing_data.R](https://github.com/YamilaTimmer/depmap-portal-data-visualizations/blob/main/scripts/pre-processing_data.R) (note: this step can take up to a few minutes, this is caused by the size of the dataset. This step will only have to be performed **once**):
 
@@ -103,7 +103,7 @@ source("scripts/pre-processing_data.R")
 
 ### Launch the app
 
-Now that the R data objects are created, the app itself can be run as following:
+Now that the R data objects are created, the app itself can be run as follows:
 
 ```r
 library(shiny)
@@ -112,7 +112,7 @@ runApp('app')
 
 ## Usage
 ### Select Parameters
-Use the sidebar to select the wanted genes, cancer types and additional demographic filters, including patient sex, race and age category.
+Use the sidebar to select the wanted genes, cancer types, and additional demographic filters, including patient sex, race, and age category.
 
 - **Genes**: include a total of 19194 humane genes
 - **Cancer types** (OncotreePrimaryDisease): contains a plethora of different cancer diseases of which the cell lines were extracted 
@@ -122,14 +122,14 @@ Use the sidebar to select the wanted genes, cancer types and additional demograp
 
 ![Selecting the parameters](media/select_parameters.PNG)
 
-After selecting the parameters, the side bar can be collapsed to allow more space for the visualisation and datatable.
+After selecting the parameters, the sidebar can be collapsed to allow more space for the visualisation and data table.
 
 
 ## Generate Visualizations
 
 ![Generating visualisations](media/generate_visualisations.PNG)
 
-1. Select type of plot to generate in the tabs menu (options: barplot, boxplot/violinplot and heatmap)
+1. Select type of plot to generate in the tabs menu (options: barplot, boxplot/violin plot and heatmap)
 2. View the visualization in full screen by pressing the 'expand' button in the bottom right of the tab
 3. Further options can be selected, in the sidebar on the left, options differ per plot type
 4. The visualization can be resized by hovering over the edges of the plot and dragging the mouse
@@ -139,7 +139,7 @@ After selecting the parameters, the side bar can be collapsed to allow more spac
 
 
 ## Explore data
-View the data that is generated for the selected parameters, in the table on the right side. The datatable can be viewed in full screen by pressing the 'expand' button in the bottom right of the tab. What columns will be displayed can be chosen in the column selector at the top. The data can be sorted on columns from low/high, or you can perform do a specific search using the search bar in the top right. Additional metadata can be viewed in the table, by choosing additional columns in the column selector. A short description for all columns can be found in the [appendix](README.md#appendix). Keep in mind, some columns have a lot of missing values (NA values). 
+View the data that is generated for the selected parameters, in the table on the right side. The data table can be viewed in full screen by pressing the 'expand' button in the bottom right of the tab. What columns will be displayed can be chosen in the column selector at the top. The data can be sorted on columns from low/high, or you can perform do a specific search using the search bar in the top right. Additional metadata can be viewed in the table, by choosing additional columns in the column selector. A short description for all columns can be found in the [appendix](README.md#appendix). Keep in mind, some columns have a lot of missing values (NA values). 
 
 The data can be sorted by clicking the arrows next to the column names (from high-low or low-high) and by clicking the gene names a new window will open with a link to [https://www.genecards.org/](https://www.genecards.org/) with the page corresponding to the selected gene, for more information about the gene.
 
@@ -155,7 +155,7 @@ This application shows gene expression over cell lines and can be used to interp
 
 A gene is a piece of DNA that codes for a protein. **Gene expression** means how much a gene is transcripted to RNA and then translated to a protein. The more this occurs, the higher a gene is expressed. Cancer can be linked to gene expression. For example, certain genes that prevent cancer (tumor-suppressor genes) might not be expressed as much in patients with cancer. It also works the other way around, genes that can cause cancer (oncogenes) are often seen in higher expression levels in patients with cancer. The expression of the genes can be found in `OmicsExpressionProteinCodingGenesTPMLogp1.csv`.
 
-The **cell lines** refers to populations of cells that are derived from patients with different types of cancer. Which allows for 'in vitro' research, which is done outside of the patient, which has the benefit that it can be studied without potentially harming the patient. Information about the cell lines can be found in `Model.csv`. 
+The **cell lines** refer to populations of cells that are derived from patients with different types of cancer. Which allows for 'in vitro' research, which is done outside of the patient, which has the benefit that it can be studied without potentially harming the patient. Information about the cell lines can be found in `Model.csv`. 
 
 ## Recommended genes to inspect
 
